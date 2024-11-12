@@ -5628,7 +5628,7 @@ cudaError_t addWithCuda()
     istoch = false;
     for (int i = 0; i < 800000; i = i + 2)  // Сколько шагов по времени делаем?
     {
-        if (i % 1000 == 0)
+        if (i % 5000 == 0)
         {
             cout << "from HOST HLLC  " << i << endl;
         }
@@ -5700,7 +5700,7 @@ cudaError_t addWithCuda()
             fout_fur << *host_TT << " " << host_ro1[My_n1] << " " << i << endl;
         }
 
-        if ((i % 55000 == 0 && i >= 0)||i==2000)
+        if ((i % 55000 == 0 && i >= 0)||i==2000 || i == 5000 || i == 10000 || i == 20000)
         {
             cout << "HLLC + D " + nam << endl;
             if (true)

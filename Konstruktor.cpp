@@ -1163,7 +1163,7 @@ void Konstruktor::filling(void)
 			i->Bz = 0.0;
 			i->Q = 0.0;
 		}
-		else if (dist <= ddist * 1.0001) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
+		else if (dist <= ddist * 1.01) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
 		{
 			i->ro = ro_E / pow(dist / rr_0, 2.0);
 			i->p = P_E * pow(rr_0 / dist, 2.0 * ggg);
