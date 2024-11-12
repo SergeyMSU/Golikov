@@ -6,7 +6,7 @@
 #include <fstream>
 #include <math.h>
 
-#define M_inf  0.0// 3.0 // 0.25 // 0.7 // 0.4 // 0.8
+#define M_inf  0.3// 3.0 // 0.25 // 0.7 // 0.4 // 0.8
 #define M_infty  -M_inf
 #define phi_0  4.0 // 31.0 // 17.0 // 4.878 //1.627
 #define alpha  45.0

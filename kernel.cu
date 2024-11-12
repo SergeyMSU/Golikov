@@ -14,7 +14,7 @@
 
 
 #define ER_S(x) printf("Standart error in kernel.cu: kod - x\n")
-#define TVD_ true //false
+#define TVD_ false //false
 #define TVQ_ true
 #define kor_Sol false
 
@@ -4712,10 +4712,10 @@ cudaError_t addWithCuda()
 {
     cudaError_t cudaStatus;
 
-    //Konstruktor K(200, 100, 70,   -12.0, 8.0,   -5.0, 5.0,   0.0, 7.0);   // !!!!!!!!!!!!!!!!!!!!!!!
+    Konstruktor K(200, 100, 70,   -12.0, 8.0,   -5.0, 5.0,   0.0, 7.0);   // !!!!!!!!!!!!!!!!!!!!!!!
 
 
-    Konstruktor K("binary_Golikov_Setka_file_inst_N_16_2024.dat", true);
+    //Konstruktor K("binary_Golikov_Setka_file_inst_N_16_2024.dat", true);
 
     //  Golikov_Setka_file_HLLC_0.9Max_12Alf_n50.txt
     //  Golikov_Setka_file_HLLC_1.3Max_12Alf_n51.txt    Golikov_Setka_file_HLLC_1.3Max_12Alf.txt
@@ -4724,9 +4724,9 @@ cudaError_t addWithCuda()
     //  Golikov_Setka_file_HLLC_1.1Max_12Alf_n54.txt
     //
     //string nam = "inst_N_16_2024++";  // Имя для вывода файлов
-    string nam = "inst_N_16_2024++";  // Имя для вывода файлов
+    string nam = "inst_N_24_2024++";  // Имя для вывода файлов
 
-    if (false)
+    if (true)
     {
         cout << "All size 2 = " << K.all_Kyb.size() << endl;
         K.Drobim_z(-20.0, 3.5, 2.6, 2);
@@ -4847,8 +4847,8 @@ cudaError_t addWithCuda()
 
     //K.get_inner();   // Попытка считать граничные условия из 2Д задачи
 
-    //K.filling();
-    K.filling_mini();
+    K.filling();
+    //K.filling_mini();
 
 
 
@@ -5626,7 +5626,7 @@ cudaError_t addWithCuda()
     }
 
     istoch = false;
-    for (int i = 0; i < 0; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 800000; i = i + 2)  // Сколько шагов по времени делаем?
     {
         if (i % 500 == 0)
         {
@@ -5825,7 +5825,7 @@ cudaError_t addWithCuda()
 
 
     
-    for (int i = 0; i < 800000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 0; i = i + 2)  // Сколько шагов по времени делаем?
     {
 
         if (i % 5000 == 0)
