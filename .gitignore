@@ -46,3 +46,5 @@ binary_Golikov_Setka_file_moscow_6_3.dat
 *.dat
 
 *.out
+
+*.sbatch

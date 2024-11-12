@@ -7,8 +7,8 @@
 #include <math.h>
 
 #define M_inf  0.0// 3.0 // 0.25 // 0.7 // 0.4 // 0.8
-#define M_infty  M_inf
-#define phi_0  1.6 // 31.0 // 17.0 // 4.878 //1.627
+#define M_infty  -M_inf
+#define phi_0  4.0 // 31.0 // 17.0 // 4.878 //1.627
 #define alpha  45.0
 #define M_alf  3.0 // 12.0
 #define epsilon_ (1.0/M_alf)
@@ -21,10 +21,10 @@
 #define chi phi_0
 #define rr_0  0.07
 
-#define ddist 0.85  // 0.5
+#define ddist 0.3   // 0.7
 #define ddist2 0.0   // До какого радиуса сносим в сферической ск?
 
-#define kurant  0.9
+#define kurant  0.9 // 0.9  Актуальный курант в файле header
 
 #define a_2 0.1307345665  // 0.102578  // 0.10263
 #define Kn_  0.44 // 0.4326569808 // 0.4326569808 // 0.4326569808 // 6.0			

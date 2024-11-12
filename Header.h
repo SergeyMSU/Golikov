@@ -1,6 +1,6 @@
 #pragma once
 #include "Cell.h"
-#define krit 0.9
+#define krit 0.1 // 0.9
 struct Cell;
 extern __device__ double minmod(double x, double y);
 extern __device__ double linear(double x1, double t1, double x2, double t2, double x3, double t3, double y);

@@ -1163,7 +1163,7 @@ void Konstruktor::filling(void)
 			i->Bz = 0.0;
 			i->Q = 0.0;
 		}
-		else if (dist <= 0.5) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
+		else if (dist <= ddist * 1.0001) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
 		{
 			i->ro = ro_E / pow(dist / rr_0, 2.0);
 			i->p = P_E * pow(rr_0 / dist, 2.0 * ggg);
@@ -1173,7 +1173,7 @@ void Konstruktor::filling(void)
 			double BE = B_E / (dist / rr_0);
 			double the = acos(i->z / dist);
 			double AA, BB, CC;
-			double BR = 0.0; // -B_E * kv((rr_0 / dist));    // Br
+			double BR = -B_E * kv((rr_0 / dist));    // Br
 			this->dekard_skorost(i->x, i->y, i->z, BR, BE * sin(the), 0.0, AA, BB, CC);
 			i->Bx = AA;
 			i->By = BB;
@@ -1185,15 +1185,15 @@ void Konstruktor::filling(void)
 		}
 		else
 		{
-			//i->ro = 1.0;
-			//i->p = 1.0/(ggg);
-			//i->u = -M_inf; //-1.0;
-			//i->v = 0.0;
-			//i->w = 0.0;
-			//i->Bx = 0.0;
-			//i->By = 0.0;
-			//i->Bz = 0.0;
-			//i->Q = 100.0;
+			i->ro = 1.0;
+			i->p = 1.0/(ggg);
+			i->u = M_infty; //-1.0;
+			i->v = 0.0;
+			i->w = 0.0;
+			i->Bx = 0.0;
+			i->By = 0.0;
+			i->Bz = 0.0;
+			i->Q = 100.0;
 
 			// Перенормировка параметров
 			/*if (i->Q / i->ro < 50.0)
@@ -1213,7 +1213,7 @@ void Konstruktor::filling(void)
 void Konstruktor::get_inner(void)
 {
 	ifstream fin;
-	fin.open("save_M_4.dat", ios::binary);
+	fin.open("save_for_3d.dat", ios::binary);
 	if (!fin)
 	{
 		cout << "Could not open file! Check name file again!" << endl;
@@ -1221,15 +1221,15 @@ void Konstruktor::get_inner(void)
 	}
 	cout << "File is open binary form!" << endl;
 
-	int N_ = 2304;
-	int M_ = 2304;  // //1280 //1280                 // Количество ячеек по y
+	int N_ = 1024;
+	int M_ = 1024;  // //1280 //1280                 // Количество ячеек по y
 	int K_ = (N_ * M_);
-	double x_max_ = 3.0;
+	double x_max_ = 0.6;
 	double x_min_ = (x_max_ / (2.0 * N_));
-	double y_max_ = 3.0;
+	double y_max_ = 0.6;
 	double y_min_ = (y_max_ / (2.0 * M_));
-	double dx_ = ((x_max_) / (N_));
-	double dy_ = ((y_max_) / (M_));
+	double dx_ = ((x_max_ - x_min_) / (N_ - 1));
+	double dy_ = ((y_max_ - y_min_) / (M_ - 1));
 
 	double x, y, ro, p, u, v, b, er;
 	double* ro_in, * p_in, * u_in, * v_in, * b_in;
@@ -1260,6 +1260,11 @@ void Konstruktor::get_inner(void)
 		u_in[k] = u;
 		v_in[k] = v;
 		b_in[k] = b;
+
+		if (k % 100000 == 0)
+		{
+			cout << "rho = " << ro_in[k] << endl;
+		}
 	}
 
 
@@ -1301,9 +1306,13 @@ void Konstruktor::get_inner(void)
 			y1 = y_min_ + m1 * dy_;
 			y2 = y_min_ + m2 * dy_;
 
+
 			if(x < x1 || x > x2 || y < y1 || y > y2)
 			{
 				cout << "Error q3e34244" << endl;
+				cout << x << " " << x1 << " " << x2 << endl;
+				cout << y << " " << y1 << " " << y2 << endl;
+				cout << n1 << " " << n2 << " " << m1 << " " << m2 << endl;
 				exit(-1);
 			}
 
@@ -1318,6 +1327,10 @@ void Konstruktor::get_inner(void)
 			z1 = ro_in[k1] + (ro_in[k2] - ro_in[k1]) * al;
 			z2 = ro_in[k3] + (ro_in[k4] - ro_in[k3]) * al;
 			i->ro = z1 + (z2 - z1) * be;
+
+			//cout << x << " " << y << " " << x1 << " " << y1 << " " << x2 << " " << y2 << endl;
+			//cout << ro_in[k1] << " " << ro_in[k2] << " " << ro_in[k3] << " " << ro_in[k4] << " " << i->ro << endl;
+			//exit(-1);
 
 			z1 = p_in[k1] + (p_in[k2] - p_in[k1]) * al;
 			z2 = p_in[k3] + (p_in[k4] - p_in[k3]) * al;
@@ -1357,14 +1370,18 @@ void Konstruktor::get_inner(void)
 
 void Konstruktor::filling_mini(void)
 {
-	double r_0 = 100.0 / 184.0;
-	double R = 100.0;
+	double V_E = phi_0;
+	double ro_E = 1.0 / (phi_0 * phi_0 * rr_0 * rr_0); // MM / (4.0 * pi * V_E * rr_0 * rr_0);
+	double P_E = ro_E * V_E * V_E / (ggg * M_0 * M_0);   // Мах другой в давлении
+	double B_E = sqrt(4.0 * pi) / (M_alf * rr_0);
+
 	for (auto& i : this->all_Kyb)
 	{
 		double dist = sqrt(i->x * i->x + i->y * i->y + i->z * i->z);
-		//double dist2 = sqrt(kv(i->x + 532.0) + kv(i->y - 100) + i->z * i->z);
-		double dist3 = sqrt(kv(i->x + 155.0) + kv(i->y) + i->z * i->z);
-		if (dist < 70)
+		//double dist2 = sqrt(kv(i->x + 0.8) + i->y * i->y + i->z * i->z);
+		//double dist3 = kv(i->x + 1.8)/kv(2.9) + kv(i->y)/kv(2.9)  + kv(i->z)/kv(2.9);
+		double dist3 = kv(i->x + 0.15) / kv(0.35) + kv(i->y) / kv(0.35) + kv(i->z) / kv(0.35);
+		if (dist < 0.00005)
 		{
 			i->ro = 0.0;
 			i->p = 0.0;
@@ -1374,28 +1391,30 @@ void Konstruktor::filling_mini(void)
 			i->Bx = 0.0;
 			i->By = 0.0;
 			i->Bz = 0.0;
-
+			i->Q = 0.0;
 		}
-		else if (dist < 128.0 )
+		else if (dist <= ddist * 1.0001) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
 		{
-			i->ro = (1.0 / (phi_0 * phi_0 * r_0 * r_0)) * R * R / (dist * dist);
-			i->p = 0.0204284 * pow(R / dist, 2.0 * ggg);
-			i->u = phi_0 * i->x / dist;
-			i->v = phi_0 * i->y / dist;
-			i->w = phi_0 * i->z / dist;
-			i->Bx = 0.0;
+			i->ro = ro_E / pow(dist / rr_0, 2.0);
+			i->p = P_E * pow(rr_0 / dist, 2.0 * ggg);
+			i->u = V_E * i->x / dist;
+			i->v = V_E * i->y / dist;
+			i->w = V_E * i->z / dist;
+			double BE = B_E / (dist / rr_0);
+			double the = acos(i->z / dist);
+			double AA, BB, CC;
+			double BR = -B_E * kv((rr_0 / dist));    // Br
+			this->dekard_skorost(i->x, i->y, i->z, BR, BE * sin(the), 0.0, AA, BB, CC);
+			i->Bx = AA;
+			i->By = BB;
+			i->Bz = CC;
+			/*i->Bx = 0.0;
 			i->By = 0.0;
-			i->Bz = 0.0;
+			i->Bz = 0.0;*/
 			i->Q = i->ro;
 		}
 
-		/*if (dist2 < 110.0)
-		{
-			i->u = -0.2;
-			i->Bx = 0.0;
-			i->By = 0.0;
-			i->Bz = 0.0;
-		}*/
+
 	}
 }
 
