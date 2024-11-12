@@ -935,7 +935,7 @@ void Konstruktor::Generate_sosed_for_TVD(int* s1, int* s2)
 		i->drob = true;
 		for (auto& j : i->sosed)
 		{
-			if (j->number < 0 || fabs(i->dx - j->dx) > 0.001)
+			if (j->number < 0)// || fabs(i->dx - j->dx) > 0.001)
 			{
 				i->drob = false;
 				break;
@@ -951,7 +951,7 @@ void Konstruktor::Generate_sosed_for_TVD(int* s1, int* s2)
 			{
 				for (auto& k : j->sosed)
 				{
-					if (k->number < 0 || fabs(j->dx - k->dx) > 0.001)
+					if (k->number < 0)// || fabs(j->dx - k->dx) > 0.001)
 					{
 						i->drob = false;
 						break;

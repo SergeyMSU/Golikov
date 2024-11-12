@@ -3570,7 +3570,7 @@ __global__ void Cuda_main_HLLDQ_TVD2(int* NN, double* X, double* Y, double* Z, d
                     uu = 0.0;
                 }*/
                 Potok[8] = Potok[8] + sks * S;
-                if (!kor_Sol || metod == 1 || metod == 3)
+                if (!kor_Sol || metod == 1 || metod == 3 || metod == 2)
                 {
                     tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
                 }
@@ -4993,7 +4993,7 @@ cudaError_t addWithCuda()
         ll = ll + K.all_Kyb[i]->sosed.size();
     }
     cout << "2222222" << endl;
-    if (TVD_ == true) // Можно проверить правильность работы ТВД
+    if (false)//(TVD_ == true) // Можно проверить правильность работы ТВД
     {
         cout << "proverca TVD " << endl;;
         int km = -1;
@@ -5025,6 +5025,10 @@ cudaError_t addWithCuda()
         }
 
         cout << "proshla yspeshno" << endl;
+    }
+    else
+    {
+        cout << "proverka TVD ne provodilas" << endl;
     }
 
 
@@ -5821,10 +5825,10 @@ cudaError_t addWithCuda()
 
 
     
-    for (int i = 0; i < 10000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 800000; i = i + 2)  // Сколько шагов по времени делаем?
     {
 
-        if (i % 1000 == 0)
+        if (i % 5000 == 0)
         {
             cout << "from HOST HLLC + TVD  " << i << endl;
         }
@@ -5889,7 +5893,7 @@ cudaError_t addWithCuda()
             fout_fur << *host_TT << " " << host_ro1[My_n1] << " " << i << endl;
         }
 
-        if ((i % 25000 == 0 && i >= 0) || i == 1000 || i == 2000 || i == 3000 || i == 4000 || i == 5000 || i == 10000 || i == 15000 || i == 20000)
+        if ((i % 50000 == 0 && i >= 0) || i == 1000 || i == 3000 || i == 5000 || i == 10000 || i == 15000 || i == 20000)
         {
             cout << "HLLC + D " + nam << endl;
             if (true)
