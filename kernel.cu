@@ -5628,7 +5628,7 @@ cudaError_t addWithCuda()
     istoch = false;
     for (int i = 0; i < 800000; i = i + 2)  // Сколько шагов по времени делаем?
     {
-        if (i % 500 == 0)
+        if (i % 1000 == 0)
         {
             cout << "from HOST HLLC  " << i << endl;
         }
