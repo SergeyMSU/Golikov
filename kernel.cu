@@ -16,7 +16,7 @@
 #define ER_S(x) printf("Standart error in kernel.cu: kod - x\n")
 #define TVD_ false //false
 #define TVQ_ true
-#define kor_Sol false
+#define kor_Sol true
 
 #define sss 500000000
 
@@ -2208,7 +2208,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                     dekard_skorost((z + z2) / 2.0, (x + x2) / 2.0, (y + y2) / 2.0, ur, up, uz, sw2, su2, sv2);
                 }
 
-                if (metod <= 1 || metod == 2 || metod == 3)//(y * y + z * z < 225 && y2 * y2 + z2 * z2 < 225 && x > -15 && x2 > -15 && x < 8 && x2 < 8  && step_ > 10000)
+                if (metod <= 1 || metod == 3)//(y * y + z * z < 225 && y2 * y2 + z2 * z2 < 225 && x > -15 && x2 > -15 && x < 8 && x2 < 8  && step_ > 10000)
                 {
                     tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, su1, sv1, sw1, bx, by, bz, ro2, Q_2, p2, su2, sv2, sw2, bx2, by2, bz2, P, PQ, n1, n2, n3, dist, metod));
                 }
@@ -3501,7 +3501,7 @@ __global__ void Cuda_main_HLLDQ_TVD2(int* NN, double* X, double* Y, double* Z, d
                     }
                     Potok[8] = Potok[8] + sks * S;
 
-                    if (!kor_Sol || metod <= 1 || metod == 2 || metod == 3)
+                    if (!kor_Sol || metod <= 1 || metod == 3)
                     {
                         tmin = min(tmin, HLLDQ_Alexashov(ro12, Q12, p12, u12, v12, w12, bx12, by12, bz12, ro21, Q21, p21, u21, v21, w21, bx21, by21, bz21, P, PQ, n1, n2, n3, dist, metod));
                     }
@@ -3570,7 +3570,7 @@ __global__ void Cuda_main_HLLDQ_TVD2(int* NN, double* X, double* Y, double* Z, d
                     uu = 0.0;
                 }*/
                 Potok[8] = Potok[8] + sks * S;
-                if (!kor_Sol || metod == 1 || metod == 3 || metod == 2)
+                if (!kor_Sol || metod == 1 || metod == 3)
                 {
                     tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
                 }
@@ -5459,9 +5459,9 @@ cudaError_t addWithCuda()
     time(&start_time);
     //nam = "1.97";
     MMM = 0.0;
-    for (int i = 0; i < 0; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 100000; i = i + 2)  // Сколько шагов по времени делаем?
     {
-        if (i % 10 == 0)
+        if (i % 10000 == 0)
         {
             cout << "from HOST LAX " << i << endl;
         }
@@ -5502,7 +5502,7 @@ cudaError_t addWithCuda()
             goto Error;
         }
 
-        if ((i % 1000 == 0))
+        if ((i % 5000 == 0))
         {
             cout << "HLLC + D " + nam << endl;
             if (true)
@@ -5626,9 +5626,9 @@ cudaError_t addWithCuda()
     }
 
     istoch = false;
-    for (int i = 0; i < 800000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 0; i = i + 2)  // Сколько шагов по времени делаем?
     {
-        if (i % 5000 == 0)
+        if (i % 500 == 0)
         {
             cout << "from HOST HLLC  " << i << endl;
         }
@@ -5700,7 +5700,7 @@ cudaError_t addWithCuda()
             fout_fur << *host_TT << " " << host_ro1[My_n1] << " " << i << endl;
         }
 
-        if ((i % 55000 == 0 && i >= 0)||i==2000 || i == 5000 || i == 10000 || i == 20000)
+        if ( (i % 55000 == 0 && i >= 0) || i == 1000 || i == 2000 || i == 3000 || i == 5000 || i == 10000 || i == 20000)
         {
             cout << "HLLC + D " + nam << endl;
             if (true)
@@ -5762,6 +5762,7 @@ cudaError_t addWithCuda()
             {
                 time_null = *host_TT;
             }
+            cout << "Time =  " << *host_TT << endl;
             K.print_Tecplot_y_20(0.0001, i, nam, *host_TT - time_null);
             //K.print_Tecplot_x_20(0.0001, i, nam, *host_TT - time_null);
             K.print_Tecplot_z_20(1.400001, i, nam, *host_TT - time_null);
