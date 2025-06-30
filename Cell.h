@@ -21,8 +21,8 @@
 #define chi phi_0
 #define rr_0  0.07
 
-#define ddist 0.3   // 0.7
-#define ddist2 0.0   // До какого радиуса сносим в сферической ск?
+#define ddist 0.35//0.3//25   // 0.7
+#define ddist2 0.6 //55   // До какого радиуса сносим в сферической ск?
 
 #define kurant  0.9 // 0.9  Актуальный курант в файле header
 

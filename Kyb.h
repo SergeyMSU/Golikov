@@ -24,6 +24,12 @@ public:
 	double jx;
 	double jy;
 	double jz;
+	double dpx;
+	double dpy;
+	double dpz;
+	double dbbx;
+	double dbby;
+	double dbbz;
 	bool j_;
 	vector <Kyb*> sosed;
 	int number;

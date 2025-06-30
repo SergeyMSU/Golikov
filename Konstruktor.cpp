@@ -1163,7 +1163,7 @@ void Konstruktor::filling(void)
 			i->Bz = 0.0;
 			i->Q = 0.0;
 		}
-		else if (dist <= ddist * 1.0001) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
+		else if (dist <= ddist * 1.1) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
 		{
 			i->ro = ro_E / pow(dist / rr_0, 2.0);
 			i->p = P_E * pow(rr_0 / dist, 2.0 * ggg);
@@ -1393,7 +1393,7 @@ void Konstruktor::filling_mini(void)
 			i->Bz = 0.0;
 			i->Q = 0.0;
 		}
-		else if (dist <= ddist * 1.0001) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
+		else if (dist <= ddist * 1.01) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
 		{
 			i->ro = ro_E / pow(dist / rr_0, 2.0);
 			i->p = P_E * pow(rr_0 / dist, 2.0 * ggg);
@@ -1501,8 +1501,16 @@ void Konstruktor::print_Tecplot_z_20(double z, double T, string nam, const doubl
 	string name_f = "sd_z_" + to_string(z) + "__" + to_string(T) + "_" + nam + ".txt";
 	fout.open(name_f);
 	//fout2.open("1D__" + name_f);
-	fout << "TITLE = \"HP\"  VARIABLES = \"X\", \"Y\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\", \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\", ZONE T = \"HP\", SOLUTIONTIME = " << Time << endl;
+
+
+	//fout << "TITLE = \"HP\"  VARIABLES = \"X\", \"Y\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\", \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\", \"FmagX\", \"FmagY\", \"FmagZ\", \"jFmag\", ZONE T = \"HP\", SOLUTIONTIME = " << Time << endl;
+	fout << "TITLE = \"HP\"  VARIABLES = \"x\", \"y\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\",  \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\",\"Fmagx\",\"Fmagy\",\"Fmagz\", \"-dpx\",\"-dpy\",\"-dpz\", \"-dbbx\",\"-dbby\",\"-dbbz\", \"Ftenx\",\"Fteny\",\"Ftenz\", ZONE T = \"HP\", SOLUTIONTIME = " << Time << endl;
+	
+	
 	//fout2 << "TITLE = \"HP\"  VARIABLES = \"X\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\", \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\", ZONE T = \"HP\"" << endl;
+	double rotBx, rotBy, rotBz;
+	double Fmag_x, Fmag_y, Fmag_z;
+
 
 	for (auto& i : this->all_Kyb)
 	{
@@ -1521,10 +1529,34 @@ void Konstruktor::print_Tecplot_z_20(double z, double T, string nam, const doubl
 				}
 			}
 
-			fout << i->x * r_o << " " << i->y * r_o << " " << sqrt(i->x * r_o * i->x * r_o + i->y * r_o * i->y * r_o) << " " << i->ro << " " << i->p << " " //
+			rotBx = i->jx;
+			rotBy = i->jy;
+			rotBz = i->jz;
+
+
+			Fmag_x = (rotBy * i->Bz - rotBz * i->By)/(4.0 * pi);
+			Fmag_y = (rotBz * i->Bx - rotBx * i->Bz)/(4.0 * pi);
+			Fmag_z = (rotBx * i->By - rotBy * i->Bx)/(4.0 * pi);
+
+			// Ёто было до того, как € решил вычислить все три силы
+			//fout << i->x * r_o << " " << i->y * r_o << " " << sqrt(i->x * r_o * i->x * r_o + i->y * r_o * i->y * r_o) << " " << i->ro << " " << i->p << " " //
+			//	<< i->p + kvv(i->Bx, i->By, i->Bz) / cpi8 << " " << //
+			//	i->u << " " << i->v << " " << i->w << " " << sqrt(kvv(i->u, i->v, i->w)) << //
+			//	" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " <<  sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << 
+			//	" " << Fmag_x << " " << Fmag_y << " " << Fmag_z << " " << sqrt(kvv(Fmag_x, Fmag_y, Fmag_z)) << endl;
+
+			fout << i->x << " " << i->y << " " << sqrt(i->x * i->x + i->z * i->z) << " " << i->ro << " " << i->p << " " //
 				<< i->p + kvv(i->Bx, i->By, i->Bz) / cpi8 << " " << //
 				i->u << " " << i->v << " " << i->w << " " << sqrt(kvv(i->u, i->v, i->w)) << //
-				" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " <<  sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << endl;
+				" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " << sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << " " <<
+				(i->jy * i->Bz - i->jz * i->By) / (4.0 * pi) << " " << (i->jx * i->Bz - i->jz * i->Bx) / (4.0 * pi) << " " << (i->jx * i->By - i->jy * i->Bx) / (4.0 * pi) <<
+				" " << -i->dpx << " " << -i->dpy << " " << -i->dpz <<
+				" " << -i->dbbx / (8.0 * pi) << " " << -i->dbby / (8.0 * pi) << " " << -i->dbbz / (8.0 * pi) <<
+				" " << (i->jy * i->Bz - i->jz * i->By) / (4.0 * pi) + i->dbbx / (8.0 * pi) <<
+				" " << (i->jx * i->Bz - i->jz * i->Bx) / (4.0 * pi) + i->dbby / (8.0 * pi) <<
+				" " << (i->jx * i->By - i->jy * i->Bx) / (4.0 * pi) + i->dbbz / (8.0 * pi) << " " << endl;
+
+
 
 			//for (auto& j : i->sosed)
 			//{
@@ -1685,7 +1717,7 @@ void Konstruktor::print_Tecplot_y_20(double y, double T, string nam, const doubl
 	ofstream fout;
 	string name_f = "sd_y_" + to_string(y) + "__" + to_string(T) + "_" + nam + ".txt";
 	fout.open(name_f);
-	fout << "TITLE = \"HP\"  VARIABLES = \"x\", \"Z\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\",  \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\", ZONE T = \"HP\", SOLUTIONTIME = "<< Time << endl;
+	fout << "TITLE = \"HP\"  VARIABLES = \"x\", \"Z\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\",  \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\",\"Fmagx\",\"Fmagy\",\"Fmagz\", \"-dpx\",\"-dpy\",\"-dpz\", \"-dbbx\",\"-dbby\",\"-dbbz\", \"Ftenx\",\"Fteny\",\"Ftenz\", ZONE T = \"HP\", SOLUTIONTIME = "<< Time << endl;
 	for (auto& i : this->all_Kyb)
 	{
 		if (fabs(i->y - y) <= i->dy)
@@ -1706,7 +1738,13 @@ void Konstruktor::print_Tecplot_y_20(double y, double T, string nam, const doubl
 			fout << i->x << " " << i->z << " " << sqrt(i->x * i->x + i->z * i->z) << " " << i->ro << " " << i->p << " " //
 				<< i->p + kvv(i->Bx, i->By, i->Bz) / cpi8 << " " << //
 				i->u << " " << i->v << " " << i->w << " " << sqrt(kvv(i->u, i->v, i->w)) << //
-				" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " << sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << endl;
+				" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " << sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << " " << 
+				(i->jy * i->Bz - i->jz * i->By)/(4.0 * pi) << " " << (i->jx * i->Bz - i->jz * i->Bx) / (4.0 * pi) << " " << (i->jx * i->By - i->jy * i->Bx) / (4.0 * pi) << 
+				" " << -i->dpx << " " << -i->dpy << " " << -i->dpz << 
+			" " << -i->dbbx / (8.0 * pi) << " " << -i->dbby / (8.0 * pi) << " " << -i->dbbz / (8.0 * pi) << 
+			" " << (i->jy * i->Bz - i->jz * i->By) / (4.0 * pi) + i->dbbx / (8.0 * pi) << 
+				" " << (i->jx * i->Bz - i->jz * i->Bx) / (4.0 * pi) + i->dbby / (8.0 * pi) <<
+				" " << (i->jx * i->By - i->jy * i->Bx) / (4.0 * pi) + i->dbbz / (8.0 * pi) << " " << endl;
 
 			//fout << i->x * r_o << " " << -i->z * r_o << " " << sqrt(i->x * r_o * i->x * r_o + i->z * r_o * i->z * r_o) << " " << i->ro << " " << i->p << " " //
 			//	<< i->p + kvv(i->Bx, i->By, i->Bz) / cpi8 << " " << //
@@ -2827,6 +2865,49 @@ void Konstruktor::Drobim_z(double z1, double z2, double r, int NN)
 	this->number();
 }
 
+void Konstruktor::Drobim_z_2(double z1, double z2, double r, double x0, double y0, int NN)
+{
+	for (auto& i : this->all_Kyb)
+	{
+		i->drob = false;
+	}
+
+	int ll = 0;
+	double rr;
+	for (auto& i : this->all_Kyb)
+	{
+		rr = sqrt(kv(i->y - y0) + kv(i->x - x0));
+		if ((i->z > z1) && (i->z < z2) && (rr < r) && i->dx > 0.01)
+		{
+			ll++;
+			i->drob = true;
+		}
+	}
+
+	int mm = this->all_Kyb.size();
+
+	for (int i = 0; i < mm; i++)
+	{
+		if (this->all_Kyb[i]->drob == true)
+		{
+			if (NN == 2)
+			{
+				this->droblenie2_hand(this->all_Kyb[i]);
+			}
+			else
+			{
+				this->droblenie_fast(this->all_Kyb[i], NN);
+			}
+			ll--;
+			if (ll % 25000 == 0)
+			{
+				cout << ll << endl;
+			}
+		}
+	}
+	this->number();
+}
+
 void Konstruktor::Drobim_x(double x1, double x2, double r, int NN)
 {
 	for (auto& i : this->all_Kyb)
@@ -3157,7 +3238,7 @@ void Konstruktor::count_j(void)
 			bool jk = true;
 			for (auto& j : i->sosed)
 			{
-				if (fabs(j->dx - i->dx) > 10 * geo && j->number >= 0)
+				if (fabs(j->dx - i->dx) > 10 * geo && j->number >= 0) // ѕровер€ем что размеры €чейки и соседа совпадают, а также сосед - реальна€, а не фиктивна€ €чейка
 				{
 					jk = false;
 				}
@@ -3166,6 +3247,7 @@ void Konstruktor::count_j(void)
 			{
 				i->j_ = true;
 				double Bx1 = 0.0, Bx2 = 0.0, Bx3 = 0.0, Bx4 = 0.0, Bx5 = 0.0, Bx6 = 0.0, By1 = 0.0, By2 = 0.0, By3 = 0.0, By4 = 0.0, By5 = 0.0, By6 = 0.0, Bz1 = 0.0, Bz2 = 0.0, Bz3 = 0.0, Bz4 = 0.0, Bz5 = 0.0, Bz6 = 0.0;
+				double p1 = 0.0, p2 = 0.0, p3 = 0.0, p4 = 0.0, p5 = 0.0, p6 = 0.0;
 				int n1, n2, n3, n4, n5, n6;
 				bool a1 = false, a2 = false, a3 = false, a4 = false, a5 = false, a6 = false;
 				for (auto& j : i->sosed)
@@ -3177,6 +3259,7 @@ void Konstruktor::count_j(void)
 						Bx1 = j->Bx;
 						By1 = j->By;
 						Bz1 = j->Bz;
+						p1 = j->p;
 					}
 					else if (j->x < i->x && fabs(fabs(j->x - i->x) - i->dx - j->dx) < geo)
 					{
@@ -3185,6 +3268,7 @@ void Konstruktor::count_j(void)
 						Bx2 = j->Bx;
 						By2 = j->By;
 						Bz2 = j->Bz;
+						p2 = j->p;
 					}
 					else if (j->y > i->y && fabs(fabs(j->y - i->y) - i->dy - j->dy) < geo)
 					{
@@ -3193,6 +3277,7 @@ void Konstruktor::count_j(void)
 						Bx3 = j->Bx;
 						By3 = j->By;
 						Bz3 = j->Bz;
+						p3 = j->p;
 					}
 					else if (j->y < i->y && fabs(fabs(j->y - i->y) - i->dy - j->dy) < geo)
 					{
@@ -3201,6 +3286,7 @@ void Konstruktor::count_j(void)
 						Bx4 = j->Bx;
 						By4 = j->By;
 						Bz4 = j->Bz;
+						p4 = j->p;
 					}
 					else if (j->z > i->z && fabs(fabs(j->z - i->z) - i->dz - j->dz) < geo)
 					{
@@ -3209,6 +3295,7 @@ void Konstruktor::count_j(void)
 						Bx5 = j->Bx;
 						By5 = j->By;
 						Bz5 = j->Bz;
+						p5 = j->p;
 					}
 					else if (j->z < i->z && fabs(fabs(j->z - i->z) - i->dz - j->dz) < geo)
 					{
@@ -3217,6 +3304,7 @@ void Konstruktor::count_j(void)
 						Bx6 = j->Bx;
 						By6 = j->By;
 						Bz6 = j->Bz;
+						p6 = j->p;
 					}
 					else
 					{
@@ -3235,40 +3323,54 @@ void Konstruktor::count_j(void)
 					Bx1 = i->Bx;
 					By1 = i->By;
 					Bz1 = i->Bz;
+					p1 = i->p;
 				}
 				if (n2 < 0)
 				{
 					Bx2 = i->Bx;
 					By2 = i->By;
 					Bz2 = i->Bz;
+					p2 = i->p;
 				}
 				if (n3 < 0)
 				{
 					Bx3 = i->Bx;
 					By3 = i->By;
 					Bz3 = i->Bz;
+					p3 = i->p;
 				}
 				if (n4 < 0)
 				{
 					Bx4 = -i->Bx;
 					By4 = i->By;
 					Bz4 = -i->Bz;
+					p4 = -i->p;
 				}
 				if (n5 < 0)
 				{
 					Bx5 = i->Bx;
 					By5 = i->By;
 					Bz5 = i->Bz;
+					p5 = i->p;
 				}
 				if (n6 < 0)
 				{
 					Bx6 = i->Bx;
 					By6 = i->By;
 					Bz6 = -i->Bz;
+					p6 = -i->p;
 				}
 				i->jx = (Bz3 - Bz4) / (4.0 * i->dy) - (By5 - By6) / (4.0 * i->dz);
 				i->jy = (Bx5 - Bx6) / (4.0 * i->dz) - (Bz1 - Bz2) / (4.0 * i->dx);
 				i->jz = (By1 - By2) / (4.0 * i->dx) - (Bx3 - Bx4) / (4.0 * i->dy);
+
+				i->dpx = (p1 - p2) / (4.0 * i->dx);
+				i->dpy = (p3 - p4) / (4.0 * i->dy);
+				i->dpz = (p5 - p6) / (4.0 * i->dz);
+
+				i->dbbx = (kvv(Bx1, By1, Bz1) - kvv(Bx2, By2, Bz2)) / (4.0 * i->dx);
+				i->dbby = (kvv(Bx3, By3, Bz3) - kvv(Bx4, By4, Bz4)) / (4.0 * i->dy);
+				i->dbbz = (kvv(Bx5, By5, Bz5) - kvv(Bx6, By6, Bz6)) / (4.0 * i->dz);
 			}
 		}
 	}

@@ -89,6 +89,7 @@ public:
 	void Drobim(double x0, double y0, double z0, double r1, double r2, int NN, bool ff);  // Между сферами
 	void Drobim(double x1, double x2, double r, int NN);  // В цилиндре по оси x
 	void Drobim_z(double z1, double z2, double r, int NN);  // В цилиндре по оси z
+	void Drobim_z_2(double z1, double z2, double r, double x0, double y0, int NN);
 	void Drobim_x(double x1, double x2, double r, int NN);  // В цилиндре по оси z
 
 

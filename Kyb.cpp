@@ -32,5 +32,11 @@ void Kyb::initialization(double x , double y, double z, int nn)
 	this->jx = 0.0;
 	this->jy = 0.0;
 	this->jz = 0.0;
+	this->dpx = 0.0;
+	this->dpy = 0.0;
+	this->dpz = 0.0;
+	this->dbbx = 0.0;
+	this->dbby = 0.0;
+	this->dbbz = 0.0;
 }
 
