@@ -8,9 +8,9 @@
 
 #define M_inf  0.0// 3.0 // 0.25 // 0.7 // 0.4 // 0.8
 #define M_infty  -M_inf
-#define phi_0  4.0 // 31.0 // 17.0 // 4.878 //1.627
+#define phi_0  31.341 // 31.0 // 17.0 // 4.878 //1.627
 #define alpha  45.0
-#define M_alf  3.0 // 12.0
+#define M_alf  3.06824 // 12.0
 #define epsilon_ (1.0/M_alf)
 #define step  70000
 #define omega 0.0 //6 //1600
@@ -19,10 +19,10 @@
 #define kk_ 196.0
 #define betta 0.0 //4.2426
 #define chi phi_0
-#define rr_0  0.07
+#define rr_0  0.349471  // 114 AU
 
-#define ddist 0.35//0.3//25   // 0.7
-#define ddist2 0.6 //55   // До какого радиуса сносим в сферической ск?
+#define ddist rr_0//0.3//25   // 0.7
+#define ddist2 0.0 //0.6 //55   // До какого радиуса сносим в сферической ск?
 
 #define kurant  0.9 // 0.9  Актуальный курант в файле header
 
