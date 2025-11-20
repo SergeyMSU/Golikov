@@ -2107,10 +2107,12 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
     }
     else
     {
-        if (ddd2 <= 0.8 * 0.8)
-        {
-            metod = 1;
-        }
+        //if (ddd2 <= 0.8 * 0.8)
+        //{
+        //    metod = 1;
+        //}
+        metod = 3;
+
         double PQ = 0.0;
         double n1 = 0.0;
         double n2 = 0.0;
@@ -2208,7 +2210,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                 if (ddd2 <= (ddist2 * ddist2))
                 //if (kvv(u, v, w)/(ggg * p/ro) > 20.0  &&  kvv(u2, v2, w2) / (ggg * p2 / ro2) > 20.0)
                 {
-                    metod = 1;
+                    //metod = 1;
 
                     spherical_skorost(z, x, y, w, u, v, ur, up, uz);
                     dekard_skorost((z + z2) / 2.0, (x + x2) / 2.0, (y + y2) / 2.0, ur, up, uz, sw1, su1, sv1);
@@ -2404,6 +2406,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                 {
                     sks = 0.0;
                 }
+
                 Potok[8] = Potok[8] + sks * S;
                 if (!kor_Sol || metod <= 1 || metod == 3)
                 {
@@ -4786,8 +4789,8 @@ cudaError_t addWithCuda()
 {
     cudaError_t cudaStatus;
 
-    Konstruktor K(100, 100, 160,   -3.06553, 3.06553, -3.06553, 3.06553,   0.0, 4.9048102);   // !!!!!!!!!!!!!!!!!!!!!!!
-
+   // Konstruktor K(100, 100, 160,   -3.06553, 3.06553, -3.06553, 3.06553,   0.0, 4.9048102);   // !!!!!!!!!!!!!!!!!!!!!!!
+      Konstruktor K("binary_Moscow_Boston_1_2025_vers_3.dat", true);
 
     //Konstruktor K("binary_Golikov_Setka_file_inst_N_16_2024.dat", true);
     //Konstruktor K("Golikov_Setka_file_inst_16_MA_4.txt.txt", false);
@@ -4799,7 +4802,7 @@ cudaError_t addWithCuda()
     //  Golikov_Setka_file_HLLC_2.2Max_12Alf_n52.txt    Golikov_Setka_file_HLLC_2.2Max_12Alf.txt
     //  Golikov_Setka_file_HLLC_1.1Max_12Alf_n54.txt
     //
-    string nam = "Moscow_Boston_1_2025";  // Имя для вывода файлов
+    string nam = "Moscow_Boston_2-HLLD_2025";  // Имя для вывода файлов
     //string nam = "inst_N_16_MA_4_2025";  // Имя для вывода файлов
     //string nam = "inst_N_31movi_2024";  // Имя для вывода файлов
 
@@ -4825,8 +4828,13 @@ cudaError_t addWithCuda()
 
     cout << "All size 2 = " << K.all_Kyb.size() << endl;
     //K.Drobim(-1.5, 1.5, -1.5, 1.5, 0.0, 2.5, 2);
-    K.Drobim_z(-20.0, 3.06553, 1.8393, 2);
-    K.Drobim_z(-20.0, 1.8393, 1.686045, 2);
+
+
+    // Вот это дробление работает! Для сравнения Бостона и Москвы моделей
+    //K.Drobim_z(-20.0, 3.06553, 1.8393, 2);
+    //K.Drobim_z(-20.0, 1.8393, 1.686045, 2);
+
+
     //K.Drobim(0.0, 0.0, 0.0, 0.4, 1.2, 2, false);
     //K.Drobim(0.0, 0.0, 0.0, 0.4, 1.0, 2, false);
     //K.Drobim(0.0, 0.0, 0.0, 0.1, 0.75, 2, false);
@@ -4929,7 +4937,7 @@ cudaError_t addWithCuda()
 
     //K.get_inner();   // Попытка считать граничные условия из 2Д задачи
 
-    K.filling();
+    //K.filling();
     //K.filling_mini();
 
 
@@ -5541,17 +5549,17 @@ cudaError_t addWithCuda()
     time(&start_time);
     //nam = "1.97";
     MMM = 0.0;
-    for (int i = 0; i < 200000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 1000000; i = i + 2)  // Сколько шагов по времени делаем?
     {
-        if (i % 1000 == 0)
+        if (i % 50000 == 0)
         {
-            cout << "from HOST LAX " << i << endl;
+            cout << "from HOST HLLDQ " << i << endl;
         }
         // запускаем add() kernel на GPU, передавая параметры
         Cuda_main_HLLDQ << <(int)(N / 256) + 1, 256 >> > (dev_N, dev_x, dev_y, dev_z, dev_dx, dev_dy, dev_dz,//
             dev_ro1, dev_ro2, dev_Q1, dev_Q2, dev_p1, dev_p2, dev_u1, dev_u2, dev_v1, dev_v2,//
             dev_w1, dev_w2, dev_bx1, dev_by1, dev_bz1, dev_bx2, dev_by2, dev_bz2,//
-            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 0);
+            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 3);
 
         cudaStatus = cudaDeviceSynchronize();
         if (cudaStatus != cudaSuccess) {
@@ -5569,7 +5577,7 @@ cudaError_t addWithCuda()
         Cuda_main_HLLDQ << <(int)(N / 256) + 1, 256 >> > (dev_N, dev_x, dev_y, dev_z, dev_dx, dev_dy, dev_dz,//
             dev_ro2, dev_ro1, dev_Q2, dev_Q1, dev_p2, dev_p1, dev_u2, dev_u1, dev_v2, dev_v1,//
             dev_w2, dev_w1, dev_bx2, dev_by2, dev_bz2, dev_bx1, dev_by1, dev_bz1,//
-            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 0);
+            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 3);
 
         cudaStatus = cudaDeviceSynchronize();
         if (cudaStatus != cudaSuccess) {
@@ -5584,7 +5592,7 @@ cudaError_t addWithCuda()
             goto Error;
         }
 
-        if ((i % 10000 == 0))
+        if ((i % 40000 == 0))
         {
             cout << "HLLC + D " + nam << endl;
             if (true)
@@ -5651,7 +5659,7 @@ cudaError_t addWithCuda()
             K.print_Tecplot_z_20(0.0001, i, nam, *host_TT - time_null);
         }
 
-        if ((i % 30000 == 0 && i > 1) || (i == 30000))
+        if ((i % 150000 == 0 && i > 1) || (i == 30000000000))
         {
             if (true)
             {
@@ -5702,7 +5710,7 @@ cudaError_t addWithCuda()
                 }
             }
 
-            K.binary_save_Setka("Moscow_Boston_1_promeg_HLL");
+            K.binary_save_Setka("Moscow_Boston_1_promeg_HLLD");
         }
 
     }
