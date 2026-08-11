@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#define geo  0.001
+#define geo  (0.001 * AU)
 
 using namespace std;
 
@@ -1133,25 +1133,17 @@ void Konstruktor::dekard_skorost(double x, double y, double z, double Vr, double
 
 void Konstruktor::filling(void)
 {
-
-	//double MM = kk_ /chi;
-	//double V_E = chi;
-	//double ro_E = MM / (4.0 * pi * V_E * rr_0 * rr_0);
-	//double P_E = ro_E * V_E * V_E / (ggg * M_0 * M_0);   // Мах другой в давлении
-	//double B_E = sqrt(kk_)/(M_alf * rr_0);
-
-	double V_E = phi_0;
-	double ro_E = 1.0 / (phi_0 * phi_0 * rr_0 * rr_0); // MM / (4.0 * pi * V_E * rr_0 * rr_0);
-	double P_E = ro_E * V_E * V_E / (ggg * M_0 * M_0);   // Мах другой в давлении
-	double B_E = sqrt(4.0 * pi) / (M_alf * rr_0);
+	double r_inner = 30.0 * AU; // На каком расстоянии задана граничные условия
+	double V_E = 417.07E5;
+	double ro_E = 1.46187E-26;
+	double P_E = 2.62162E-13;   // Мах другой в давлении
+	double B_E = 7.17E-8;
 
 	for (auto& i : this->all_Kyb)
 	{
 		double dist = sqrt(i->x * i->x + i->y * i->y + i->z * i->z);
-		//double dist2 = sqrt(kv(i->x + 0.8) + i->y * i->y + i->z * i->z);
-		//double dist3 = kv(i->x + 1.8)/kv(2.9) + kv(i->y)/kv(2.9)  + kv(i->z)/kv(2.9);
-		double dist3 = kv(i->x + 0.15) / kv(0.35) + kv(i->y) / kv(0.35) + kv(i->z) / kv(0.35);
-		if (dist < 0.00005)
+
+		if (dist < 0.00005 * AU)
 		{
 			i->ro = 0.0;
 			i->p = 0.0;
@@ -1163,47 +1155,34 @@ void Konstruktor::filling(void)
 			i->Bz = 0.0;
 			i->Q = 0.0;
 		}
-		else if (dist <= ddist * 1.3) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
+		else if (dist <= 100.0 * AU)
 		{
-			i->ro = ro_E / pow(dist / rr_0, 2.0);
-			i->p = P_E * pow(rr_0 / dist, 2.0 * ggg);
+			i->ro = ro_E / pow(dist / r_inner, 2.0);
+			i->p = P_E * pow(r_inner / dist, 2.0 * ggg);
 			i->u = V_E * i->x / dist;
 			i->v = V_E * i->y / dist;
 			i->w = V_E * i->z / dist;
-			double BE = B_E / (dist / rr_0);
+			double BE = B_E / (dist / r_inner);
 			double the = acos(i->z / dist);
 			double AA, BB, CC;
-			double BR = -B_E * kv((rr_0 / dist));    // Br
+			double BR = -B_E * kv((r_inner / dist));    // Br
 			this->dekard_skorost(i->x, i->y, i->z, BR, BE * sin(the), 0.0, AA, BB, CC);
 			i->Bx = AA;
 			i->By = BB;
 			i->Bz = CC;
-			/*i->Bx = 0.0;
-			i->By = 0.0;
-			i->Bz = 0.0;*/
 			i->Q = i->ro;
 		}
 		else
 		{
-			i->ro = 1.0;
-			i->p = 1.0/(ggg);
-			i->u = M_infty; //-1.0;
+			i->ro = 1.00357E-25;
+			i->p = 1.07955E-13;
+			i->u = -26.3E5;
 			i->v = 0.0;
 			i->w = 0.0;
 			i->Bx = 0.0;
 			i->By = 0.0;
-			i->Bz = 0.0;
-			i->Q = 100.0;
-
-			// Перенормировка параметров
-			/*if (i->Q / i->ro < 50.0)
-			{
-				i->ro = i->ro / kv(phi_0);
-				i->Q = i->Q / kv(phi_0);
-				i->u = i->u * phi_0;
-				i->v = i->v * phi_0;
-				i->w = i->w * phi_0;
-			}*/
+			i->Bz = 4.4E-6;
+			i->Q = 100.0 * i->ro;
 		}
 		
 		
@@ -3211,15 +3190,15 @@ void Konstruktor::konect(double R)
 bool Konstruktor::get_square(Kyb* A, Kyb* B)
 {
 	// Аналог девайс функции для проверки правильности построения сетки
-	if (fabs(fabs(A->x - B->x) - A->dx - B->dx) < 0.0004)
+	if (fabs(fabs(A->x - B->x) - A->dx - B->dx) < 0.0004 * AU)
 	{
 		return true;
 	}
-	else if (fabs(fabs(A->y - B->y) - A->dy - B->dy) < 0.0004)
+	else if (fabs(fabs(A->y - B->y) - A->dy - B->dy) < 0.0004 * AU)
 	{
 		return true;
 	}
-	else if (fabs(fabs(A->z - B->z) - A->dz - B->dz) < 0.0004)
+	else if (fabs(fabs(A->z - B->z) - A->dz - B->dz) < 0.0004 * AU)
 	{
 		return true;
 	}

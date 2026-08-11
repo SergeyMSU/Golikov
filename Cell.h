@@ -19,10 +19,14 @@
 #define kk_ 196.0
 #define betta 0.0 //4.2426
 #define chi phi_0
-#define rr_0  0.349471  // 114 AU
+
+
+#define AU 14959787000000.0 
+#define rr_0 (40.0 * AU) 
+
 
 #define ddist rr_0//0.3//25   // 0.7
-#define ddist2 0.57 //0.6 //55   // До какого радиуса сносим в сферической ск?
+#define ddist2 (60.0 * AU)  //0.6 //55   // До какого радиуса сносим в сферической ск?
 
 #define kurant  0.9 // 0.9  Актуальный курант в файле header
 
