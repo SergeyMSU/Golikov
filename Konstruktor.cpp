@@ -1490,6 +1490,8 @@ void Konstruktor::print_Tecplot_z_20(double z, double T, string nam, const doubl
 	double rotBx, rotBy, rotBz;
 	double Fmag_x, Fmag_y, Fmag_z;
 
+	double mp = 1.67262192369E-24;
+
 
 	for (auto& i : this->all_Kyb)
 	{
@@ -1524,17 +1526,16 @@ void Konstruktor::print_Tecplot_z_20(double z, double T, string nam, const doubl
 			//	" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " <<  sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << 
 			//	" " << Fmag_x << " " << Fmag_y << " " << Fmag_z << " " << sqrt(kvv(Fmag_x, Fmag_y, Fmag_z)) << endl;
 
-			fout << i->x << " " << i->y << " " << sqrt(i->x * i->x + i->z * i->z) << " " << i->ro << " " << i->p << " " //
+			fout << i->x / AU << " " << i->y / AU << " " << sqrt(i->x * i->x + i->z * i->z) / AU << " " << i->ro / mp << " " << i->p << " " //
 				<< i->p + kvv(i->Bx, i->By, i->Bz) / cpi8 << " " << //
-				i->u << " " << i->v << " " << i->w << " " << sqrt(kvv(i->u, i->v, i->w)) << //
-				" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " << sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << " " <<
+				i->u / 1.0E5 << " " << i->v / 1.0E5 << " " << i->w / 1.0E5 << " " << sqrt(kvv(i->u, i->v, i->w)) << //
+				" " << i->Bx / 1.0E-6 << " " << i->By / 1.0E-6 << " " << i->Bz / 1.0E-6 << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) / kv(1.0E-6) << " " << Max << " " << Alf << " " << QQ << " " << sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << " " <<
 				(i->jy * i->Bz - i->jz * i->By) / (4.0 * pi) << " " << (i->jx * i->Bz - i->jz * i->Bx) / (4.0 * pi) << " " << (i->jx * i->By - i->jy * i->Bx) / (4.0 * pi) <<
 				" " << -i->dpx << " " << -i->dpy << " " << -i->dpz <<
 				" " << -i->dbbx / (8.0 * pi) << " " << -i->dbby / (8.0 * pi) << " " << -i->dbbz / (8.0 * pi) <<
 				" " << (i->jy * i->Bz - i->jz * i->By) / (4.0 * pi) + i->dbbx / (8.0 * pi) <<
 				" " << (i->jx * i->Bz - i->jz * i->Bx) / (4.0 * pi) + i->dbby / (8.0 * pi) <<
 				" " << (i->jx * i->By - i->jy * i->Bx) / (4.0 * pi) + i->dbbz / (8.0 * pi) << " " << endl;
-
 
 
 			//for (auto& j : i->sosed)
@@ -1696,7 +1697,10 @@ void Konstruktor::print_Tecplot_y_20(double y, double T, string nam, const doubl
 	ofstream fout;
 	string name_f = "sd_y_" + to_string(y) + "__" + to_string(T) + "_" + nam + ".txt";
 	fout.open(name_f);
-	fout << "TITLE = \"HP\"  VARIABLES = \"x\", \"Z\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\",  \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\",\"Fmagx\",\"Fmagy\",\"Fmagz\", \"-dpx\",\"-dpy\",\"-dpz\", \"-dbbx\",\"-dbby\",\"-dbbz\", \"Ftenx\",\"Fteny\",\"Ftenz\", ZONE T = \"HP\", SOLUTIONTIME = "<< Time << endl;
+	fout << "TITLE = \"HP\"  VARIABLES = \"X\", \"Z\", \"r\", \"Ro\", \"P\", \"P_all\", \"Vx\", \"Vy\", \"Vz\", \"VV\",  \"Bx\", \"By\", \"Bz\", \"BB\", \"Max\", \"Alf\",\"Q\", \"jjj\", \"jx\", \"jy\",\"jz\",\"Fmagx\",\"Fmagy\",\"Fmagz\", \"-dpx\",\"-dpy\",\"-dpz\", \"-dbbx\",\"-dbby\",\"-dbbz\", \"Ftenx\",\"Fteny\",\"Ftenz\", ZONE T = \"HP\", SOLUTIONTIME = "<< Time << endl;
+	
+	double mp = 1.67262192369E-24;
+	
 	for (auto& i : this->all_Kyb)
 	{
 		if (fabs(i->y - y) <= i->dy)
@@ -1714,10 +1718,10 @@ void Konstruktor::print_Tecplot_y_20(double y, double T, string nam, const doubl
 				}
 			}
 
-			fout << i->x << " " << i->z << " " << sqrt(i->x * i->x + i->z * i->z) << " " << i->ro << " " << i->p << " " //
+			fout << i->x / AU << " " << i->z / AU << " " << sqrt(i->x * i->x + i->z * i->z) / AU << " " << i->ro / mp << " " << i->p << " " //
 				<< i->p + kvv(i->Bx, i->By, i->Bz) / cpi8 << " " << //
-				i->u << " " << i->v << " " << i->w << " " << sqrt(kvv(i->u, i->v, i->w)) << //
-				" " << i->Bx << " " << i->By << " " << i->Bz << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) << " " << Max << " " << Alf << " " << QQ << " " << sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << " " << 
+				i->u / 1.0E5 << " " << i->v / 1.0E5 << " " << i->w / 1.0E5 << " " << sqrt(kvv(i->u, i->v, i->w)) << //
+				" " << i->Bx / 1.0E-6 << " " << i->By / 1.0E-6 << " " << i->Bz / 1.0E-6 << " " << sqrt(kvv(i->Bx, i->By, i->Bz)) / kv(1.0E-6) << " " << Max << " " << Alf << " " << QQ << " " << sqrt(kv(i->jx) + kv(i->jy) + kv(i->jz)) << " " << i->jx << " " << i->jy << " " << i->jz << " " <<
 				(i->jy * i->Bz - i->jz * i->By)/(4.0 * pi) << " " << (i->jx * i->Bz - i->jz * i->Bx) / (4.0 * pi) << " " << (i->jx * i->By - i->jy * i->Bx) / (4.0 * pi) << 
 				" " << -i->dpx << " " << -i->dpy << " " << -i->dpz << 
 			" " << -i->dbbx / (8.0 * pi) << " " << -i->dbby / (8.0 * pi) << " " << -i->dbbz / (8.0 * pi) << 
