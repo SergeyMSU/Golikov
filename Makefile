@@ -1,6 +1,6 @@
 # Компилятор и флаги
 CXX = nvcc
-CXXFLAGS = -O3
+CXXFLAGS = -O3 -fmad=true -Xptxas -v
 LDFLAGS =
 
 # Имя итогового исполняемого файла

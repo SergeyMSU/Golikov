@@ -456,7 +456,8 @@ void Konstruktor::binary_save_Setka(string name)
 {
 	ofstream fout, fout2;
 	fout2.open("info_file.txt");
-	if (!fout2) {
+	if (!fout2) 
+	{
 		cout << "ERROR file save binary" << endl;
 		exit(-3);
 	}

@@ -698,7 +698,221 @@ __device__ double HLLD_Alexashov(const double& ro_L, const double& p_L, const do
 }
 
 
-__device__ double HLLDQ_Alexashov(const double& ro_L, const double& Q_L, const double& p_L, const double& v1_L, const double& v2_L, const double& v3_L,//
+__device__ __forceinline__ double HLLDQ_Alexashov_mini(
+    const double& ro_L, const double& Q_L, const double& p_L,
+    const double& v1_L, const double& v2_L, const double& v3_L,
+    const double& Bx_L, const double& By_L, const double& Bz_L,
+    const double& ro_R, const double& Q_R, const double& p_R,
+    const double& v1_R, const double& v2_R, const double& v3_R,
+    const double& Bx_R, const double& By_R, const double& Bz_R,
+    double* P, double& PQ,
+    const double& n1, const double& n2, const double& n3,
+    double& rad, int metod)
+{
+    // Распаковка и масштабирование магнитного поля
+    double r1 = ro_L;
+    double u1 = v1_L;
+    double v1 = v2_L;
+    double w1 = v3_L;
+    double p1 = p_L;
+    double bx1 = Bx_L / spi4;
+    double by1 = By_L / spi4;
+    double bz1 = Bz_L / spi4;
+
+    double r2 = ro_R;
+    double u2 = v1_R;
+    double v2 = v2_R;
+    double w2 = v3_R;
+    double p2 = p_R;
+    double bx2 = Bx_R / spi4;
+    double by2 = By_R / spi4;
+    double bz2 = Bz_R / spi4;
+
+    // Средние значения
+    double ro = (r2 + r1) * 0.5;
+    double abx = (bx2 + bx1) * 0.5;
+    double aby = (by2 + by1) * 0.5;
+    double abz = (bz2 + bz1) * 0.5;
+    double al = n1, be = n2, ge = n3;
+
+    double bk = abx * al + aby * be + abz * ge;
+    double b2 = kv(abx) + kv(aby) + kv(abz);
+
+    // Строим матрицу поворота aco (храним как 9 скаляров)
+    double a00 = al, a10 = be, a20 = ge;
+    double a01, a11, a21;
+    double a02, a12, a22;
+
+    double d = b2 - kv(bk);
+    if (d > 1.0e-5) {
+        d = __dsqrt_rn(d);
+        double invd = 1.0 / d;
+        a01 = (abx - bk * al) * invd;
+        a11 = (aby - bk * be) * invd;
+        a21 = (abz - bk * ge) * invd;
+        a02 = (aby * ge - abz * be) * invd;
+        a12 = (abz * al - abx * ge) * invd;
+        a22 = (abx * be - aby * al) * invd;
+    }
+    else {
+        double aix, aiy, aiz;
+        double fa = fabs(al), fb = fabs(be), fg = fabs(ge);
+        if (fa < fb && fa < fg) {
+            aix = 1.0; aiy = 0.0; aiz = 0.0;
+        }
+        else if (fb < fg) {
+            aix = 0.0; aiy = 1.0; aiz = 0.0;
+        }
+        else {
+            aix = 0.0; aiy = 0.0; aiz = 1.0;
+        }
+        double aik = aix * al + aiy * be + aiz * ge;
+        d = __dsqrt_rn(1.0 - kv(aik));
+        double invd = 1.0 / d;
+        a01 = (aix - aik * al) * invd;
+        a11 = (aiy - aik * be) * invd;
+        a21 = (aiz - aik * ge) * invd;
+        a02 = (aiy * ge - aiz * be) * invd;
+        a12 = (aiz * al - aix * ge) * invd;
+        a22 = (aix * be - aiy * al) * invd;
+    }
+
+    // Поворачиваем скорости и магнитные поля
+    double vL0 = a00 * u1 + a10 * v1 + a20 * w1;
+    double vL1 = a01 * u1 + a11 * v1 + a21 * w1;
+    double vL2 = a02 * u1 + a12 * v1 + a22 * w1;
+
+    double vR0 = a00 * u2 + a10 * v2 + a20 * w2;
+    double vR1 = a01 * u2 + a11 * v2 + a21 * w2;
+    double vR2 = a02 * u2 + a12 * v2 + a22 * w2;
+
+    double bL0 = a00 * bx1 + a10 * by1 + a20 * bz1;
+    double bL1 = a01 * bx1 + a11 * by1 + a21 * bz1;
+    double bL2 = a02 * bx1 + a12 * by1 + a22 * bz1;
+
+    double bR0 = a00 * bx2 + a10 * by2 + a20 * bz2;
+    double bR1 = a01 * bx2 + a11 * by2 + a21 * bz2;
+    double bR2 = a02 * bx2 + a12 * by2 + a22 * bz2;
+
+    // Быстрые магнитозвуковые скорости (левая и правая)
+    double b2L = kv(bL0) + kv(bL1) + kv(bL2);
+    double b2R = kv(bR0) + kv(bR1) + kv(bR2);
+
+    double cL = __dsqrt_rn(ga * p1 / r1);
+    double aaL = bL0 / __dsqrt_rn(r1);
+    double b21 = b2L / r1;
+    double qp = __dsqrt_rn(b21 + cL * (cL + 2.0 * aaL));
+    double qm = __dsqrt_rn(b21 + cL * (cL - 2.0 * aaL));
+    double cfL = 0.5 * (qp + qm);
+    double ptL = p1 + 0.5 * b2L;
+
+    double cR = __dsqrt_rn(ga * p2 / r2);
+    double aaR = bR0 / __dsqrt_rn(r2);
+    double b22 = b2R / r2;
+    qp = __dsqrt_rn(b22 + cR * (cR + 2.0 * aaR));
+    qm = __dsqrt_rn(b22 + cR * (cR - 2.0 * aaR));
+    double cfR = 0.5 * (qp + qm);
+    double ptR = p2 + 0.5 * b2R;
+
+    // Скорости волн HLL
+    double SL = fmin(vL0, vR0) - fmax(cfL, cfR);
+    double SR = fmax(vL0, vR0) + fmax(cfL, cfR);
+
+    // Время (Курант)
+    double UU = fmax(fabs(SL), fabs(SR));
+    double time = krit * rad / UU;
+
+    // Вспомогательные величины для потоков
+    double sbv1 = u1 * bx1 + v1 * by1 + w1 * bz1;
+    double sbv2 = u2 * bx2 + v2 * by2 + w2 * bz2;
+    double e1 = p1 / g1 + r1 * 0.5 * (kv(u1) + kv(v1) + kv(w1)) + 0.5 * b2L;
+    double e2 = p2 / g1 + r2 * 0.5 * (kv(u2) + kv(v2) + kv(w2)) + 0.5 * b2R;
+
+    // Определяем TL, TR в зависимости от знаков скоростей (wv = 0)
+    double TL = SL, TR = SR;
+    if (SL > 0.0) TL = 0.0;
+    else if (SR < 0.0) TR = 0.0;
+
+    double a = TR * TL;
+    double b = TR - TL;
+    double invb = 1.0 / b;
+
+    // Разности консервативных переменных dq = UR - UL
+    double dq0 = r2 - r1;
+    double dq1 = r2 * vR0 - r1 * vL0;
+    double dq2 = r2 * vR1 - r1 * vL1;
+    double dq3 = r2 * vR2 - r1 * vL2;
+    double dq4 = e2 - e1;
+    double dq5 = bR0 - bL0;  // Bx
+    double dq6 = bR1 - bL1;  // By
+    double dq7 = bR2 - bL2;  // Bz
+
+    // Потоки FL (левые) и FR (правые)
+    double FL0 = r1 * vL0;
+    double FL1 = r1 * vL0 * vL0 + ptL - kv(bL0);
+    double FL2 = r1 * vL0 * vL1 - bL0 * bL1;
+    double FL3 = r1 * vL0 * vL2 - bL0 * bL2;
+    double FL4 = (e1 + ptL) * vL0 - bL0 * sbv1;
+    double FL6 = vL0 * bL1 - vL1 * bL0;
+    double FL7 = vL0 * bL2 - vL2 * bL0;
+
+    double FR0 = r2 * vR0;
+    double FR1 = r2 * vR0 * vR0 + ptR - kv(bR0);
+    double FR2 = r2 * vR0 * vR1 - bR0 * bR1;
+    double FR3 = r2 * vR0 * vR2 - bR0 * bR2;
+    double FR4 = (e2 + ptR) * vR0 - bR0 * sbv2;
+    double FR6 = vR0 * bR1 - vR1 * bR0;
+    double FR7 = vR0 * bR2 - vR2 * bR0;
+
+    // HLL-поток для плотности и энергии (индексы 0 и 4)
+    P[0] = (TR * FL0 - TL * FR0 + a * dq0) * invb;
+    P[4] = (TR * FL4 - TL * FR4 + a * dq4) * invb;
+
+    // Промежуточные потоки в повёрнутой системе (импульс и магнитное поле)
+    double qv0 = (TR * FL1 - TL * FR1 + a * dq1) * invb;
+    double qv1 = (TR * FL2 - TL * FR2 + a * dq2) * invb;
+    double qv2 = (TR * FL3 - TL * FR3 + a * dq3) * invb;
+
+    // Для Bx (индекс 5) – используем диффузионный член вместо HLL-потока
+    double SN = fmax(fabs(SL), fabs(SR));
+    double qb0 = -SN * (bR0 - bL0);  // wbn == 0 при wv=0
+
+    // HLL-потоки для By, Bz (индексы 6,7)
+    double qb1 = (TR * FL6 - TL * FR6 + a * dq6) * invb;
+    double qb2 = (TR * FL7 - TL * FR7 + a * dq7) * invb;
+
+    // Обратный поворот импульса и магнитного поля
+    P[1] = a00 * qv0 + a01 * qv1 + a02 * qv2;
+    P[2] = a10 * qv0 + a11 * qv1 + a12 * qv2;
+    P[3] = a20 * qv0 + a21 * qv1 + a22 * qv2;
+
+    double Pb5 = a00 * qb0 + a01 * qb1 + a02 * qb2;
+    double Pb6 = a10 * qb0 + a11 * qb1 + a12 * qb2;
+    double Pb7 = a20 * qb0 + a21 * qb1 + a22 * qb2;
+
+    // Масштабируем магнитные потоки обратно
+    P[5] = spi4 * Pb5;
+    P[6] = spi4 * Pb6;
+    P[7] = spi4 * Pb7;
+
+    // Перестановка, как в оригинале: P[4]..P[7] циклически сдвигаются
+    double SWAP = P[4];
+    P[4] = P[5];
+    P[5] = P[6];
+    P[6] = P[7];
+    P[7] = SWAP;
+
+    // Поток для пассивной величины Q
+    double FQ_L = Q_L * vL0;
+    double FQ_R = Q_R * vR0;
+    PQ = (TR * FQ_L - TL * FQ_R + a * (Q_R - Q_L)) * invb;
+
+    return time;
+
+}
+
+
+__device__ __forceinline__ double HLLDQ_Alexashov(const double& ro_L, const double& Q_L, const double& p_L, const double& v1_L, const double& v2_L, const double& v3_L,//
     const double& Bx_L, const double& By_L, const double& Bz_L, const double& ro_R, const double& Q_R, const double& p_R, const double& v1_R, const double& v2_R, const double& v3_R,//
     const double& Bx_R, const double& By_R, const double& Bz_R, double* P, double& PQ, const double& n1, const double& n2, const double& n3, double& rad, int metod)
 {   // Не работает, если скорость грани не нулевая

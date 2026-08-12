@@ -20,6 +20,17 @@
 
 #define sss 500000000
 
+
+#define roC  1.00357E-25
+#define pC 1.07955E-13
+#define uC -26.3E5
+#define vC 0.0
+#define wC 0.0
+#define QC 100.0 * roC
+#define bxC 0.0
+#define byC 0.0
+#define bzC 4.4E-6
+
 using namespace std;
 
 cudaError_t addWithCuda(void);
@@ -1754,24 +1765,7 @@ __global__ void Cuda_main_HLLD(int* NN, double* X, double* Y, double* Z, double*
         double Volume = dx * dy * dz * 8.0;
         int ii = 0;
         double x2, y2, z2, dx2, dy2, dz2, ro2, p2, u2, v2, w2, bx2, by2, bz2, sks;
-        double roC = 1.0;
-        double pC = 1.0 / (ggg * M_inf * M_inf);
-        double uC = -1.0;
-        double vC = 0.0;
-        double wC = 0.0;
-        double bxC, byC, bzC;
-        if (mgd == true)
-        {
-            bxC = -spi4 * (1.0 / (M_alf)) * cos(alpha * pi / 180.0);
-            byC = -spi4 * (1.0 / (M_alf)) * sin(alpha * pi / 180.0);
-            bzC = 0.0;
-        }
-        else
-        {
-            bxC = 0.0;
-            byC = 0.0;
-            bzC = 0.0;
-        }
+        
 
 
         for (int i = l; i <= r; i++)
@@ -2045,10 +2039,13 @@ __global__ void Cuda_main_HLLD(int* NN, double* X, double* Y, double* Z, double*
 }
 
 
-__global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double* DX, double* DY, double* DZ,//
-    double* RO1, double* RO2, double* Q1, double* Q2, double* P1, double* P2, double* U1, double* U2, double* V1, double* V2,//
-    double* W1, double* W2, double* BX1, double* BY1, double* BZ1, double* BX2, double* BY2, double* BZ2,//
-    int* SOSED, int* L, int* R, double* T, double* T_do, int step_, double M_inf_, bool mgd = true, bool diver = true, int metod = 0, bool istoch = false)
+__global__ void Cuda_main_HLLDQ(int* __restrict__ NN, double* __restrict__ X, double* __restrict__ Y, double* __restrict__ Z, double* __restrict__ DX,
+    double* __restrict__ DY, double* __restrict__ DZ, double* __restrict__ RO1, double* __restrict__ RO2, double* __restrict__ Q1, 
+    double* __restrict__ Q2, double* __restrict__ P1, double* __restrict__ P2, double* __restrict__ U1, double* __restrict__ U2, 
+    double* __restrict__ V1, double* __restrict__ V2, double* __restrict__ W1, double* __restrict__ W2, double* __restrict__ BX1, 
+    double* __restrict__ BY1, double* __restrict__ BZ1, double* __restrict__ BX2, double* __restrict__ BY2, double* __restrict__ BZ2,//
+    int* __restrict__ SOSED, int* __restrict__ L, int* __restrict__ R, double* __restrict__ T, double* __restrict__ T_do, int step_, double M_inf_,
+    bool mgd = true, bool diver = true, int metod = 0, bool istoch = false)
 {
     // istoch - источники для атомов (видимо делал расчёты для Офер и добавил
     int index = blockIdx.x * blockDim.x + threadIdx.x; // Глобальный индекс текущего потока
@@ -2085,9 +2082,8 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
     }
 
     double ddd2 = kv(x) + kv(y) + kv(z);
-    double dist3 = kv(x + 0.15) / kv(0.35) + kv(y) / kv(0.35) + kv(z) / kv(0.35);
 
-    if (ddd2 < (ddist * ddist)) // (dist3 < 1.0001)//( ddd2 <= (ddist*ddist))
+    if (ddd2 < (ddist * ddist))
     {
         RO2[index] = ro;
         P2[index] = p;
@@ -2101,13 +2097,6 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
     }
     else
     {
-        metod = 0;
-        /*if (ddd2 <= 0.73 * 0.73)
-        {
-            metod = 2;
-        }*/
-        
-
         double PQ = 0.0;
         double n1 = 0.0;
         double n2 = 0.0;
@@ -2121,18 +2110,9 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
         double Volume = dx * dy * dz * 8.0;
         int ii = 0;
         double x2, y2, z2, dx2, dy2, dz2, ro2, p2, u2, v2, w2, bx2, by2, bz2, sks, Q_2;
-        double su1, sv1, sw1, su2, sv2, sw2, sro1, sro2, sp1, sp2;
         double ur, up, uz;
-        double roC = 1.00357E-25;
-        double rosred = 0.0; // 8.2598; //  1.0;
-        double pC = 1.07955E-13;
-        double uC = -26.3E5;
-        double vC = 0.0;
-        double wC = 0.0;
-        double QC = 100.0 * roC;
-        double bxC = 0.0;
-        double byC = 0.0;
-        double bzC = 4.4E-6;
+        double rosred = 0.0;
+        
 
 
 
@@ -2141,6 +2121,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
             ii = SOSED[i];
             if (ii >= 0)
             {
+                double su1, sv1, sw1, su2, sv2, sw2, sro1, sro2, sp1, sp2;
                 x2 = X[ii];
                 y2 = Y[ii];
                 z2 = Z[ii];
@@ -2194,10 +2175,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                 // Делаем перенос в сферической СК 
                 ddd2 = kv((z + z2) / 2.0) + kv((x + x2) / 2.0) + kv((y + y2) / 2.0);
                 if (ddd2 <= (ddist2 * ddist2))
-                //if (kvv(u, v, w)/(ggg * p/ro) > 20.0  &&  kvv(u2, v2, w2) / (ggg * p2 / ro2) > 20.0)
                 {
-                    //metod = 1;
-
                     spherical_skorost(z, x, y, w, u, v, ur, up, uz);
                     dekard_skorost((z + z2) / 2.0, (x + x2) / 2.0, (y + y2) / 2.0, ur, up, uz, sw1, su1, sv1);
 
@@ -2211,9 +2189,9 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                     sp2 = p2 * pow((kv(z2) + kv(x2) + kv(y2)) / ddd2, ggg);
                 }
 
-                if (metod <= 1|| metod == 3)//(y * y + z * z < 225 && y2 * y2 + z2 * z2 < 225 && x > -15 && x2 > -15 && x < 8 && x2 < 8  && step_ > 10000)
+                if (true || metod <= 1|| metod == 3)//(y * y + z * z < 225 && y2 * y2 + z2 * z2 < 225 && x > -15 && x2 > -15 && x < 8 && x2 < 8  && step_ > 10000)
                 {
-                    tmin = min(tmin, HLLDQ_Alexashov(sro1, Q, sp1, su1, sv1, sw1, bx, by, bz, sro2, Q_2, sp2, su2, sv2, sw2, bx2, by2, bz2, P, PQ, n1, n2, n3, dist, metod));
+                    tmin = min(tmin, HLLDQ_Alexashov_mini(sro1, Q, sp1, su1, sv1, sw1, bx, by, bz, sro2, Q_2, sp2, su2, sv2, sw2, bx2, by2, bz2, P, PQ, n1, n2, n3, dist, metod));
                 }
                 else
                 {
@@ -2246,9 +2224,9 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                     uu = 0.0;
                 }*/
                 Potok[8] = Potok[8] + sks * S;
-                if (!kor_Sol || metod <= 1 || metod == 3)
+                if (true || !kor_Sol || metod <= 1 || metod == 3)
                 {
-                    tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
+                    tmin = min(tmin, HLLDQ_Alexashov_mini(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, u, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
                 }
                 else
@@ -2256,21 +2234,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                     tmin = min(tmin, HLLDQ_Korolkov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
                     //tmin = min(tmin, HLLDQ_Korolkov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, u, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
                 }
-                //  Можно вручную выписать потоки для ускорения времени
-                /*double b2R = kv(bxC) + kv(byC) + kv(bzC);
-                double ptR = pC + b2R / 2.0;
-                double upt2 = (kv(uC) + kv(vC) + kv(wC)) / 2.0;
-                double sbv2 = uC * bxC + vC * byC + wC * bzC;
-                double e2 = pC / g1 + roC * upt2 + b2R / 2.0;
-
-                P[0] = roC * uC;
-                P[1] = roC * uC * uC + ptR - kv(bxC);
-                P[2] = roC * uC * vC - bxC * byC;
-                P[3] = roC * uC * wC - bxC * bzC;
-                P[7] = (e2 + ptR) * uC - bxC * sbv2;
-                P[4] = 0.0;
-                P[5] = uC * byC - vC * bxC;
-                P[6] = uC * bzC - wC * bxC;*/
+                
 
                 for (int k = 0; k < 8; k++)  // Суммируем все потоки в ячейке
                 {
@@ -2300,10 +2264,10 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                     uu = -5.0E5;
                 }
 
-                if (!kor_Sol || metod <= 1 || metod == 3)
+                if (true || !kor_Sol || metod <= 1 || metod == 3)
                 {
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
-                    tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, uu, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
+                    tmin = min(tmin, HLLDQ_Alexashov_mini(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, uu, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
                        
                 }
                 else
@@ -2390,9 +2354,9 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                 }
 
                 Potok[8] = Potok[8] + sks * S;
-                if (!kor_Sol || metod <= 1 || metod == 3)
+                if (true || !kor_Sol || metod <= 1 || metod == 3)
                 {
-                    tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
+                    tmin = min(tmin, HLLDQ_Alexashov_mini(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, u, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
                 }
                 else
@@ -2424,10 +2388,10 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                 }
 
                 Potok[8] = Potok[8] + sks * S;
-                if (!kor_Sol || metod <= 1 || metod == 3)
+                if (true || !kor_Sol || metod <= 1 || metod == 3)
                 {
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, u, -v, w, -bx, by, -bz, P, PQ, n1, n2, n3, dist, metod));
-                    tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod)); // Почему тут так?
+                    tmin = min(tmin, HLLDQ_Alexashov_mini(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod)); // Почему тут так?
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, u, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod)); // Почему тут так?
                     
                      //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, u, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
@@ -2472,9 +2436,9 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                 }
 
                 Potok[8] = Potok[8] + sks * S;
-                if (!kor_Sol || metod <= 1 || metod == 3)
+                if (true || !kor_Sol || metod <= 1 || metod == 3)
                 {
-                    tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
+                    tmin = min(tmin, HLLDQ_Alexashov_mini(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro,  Q, p, u, v, ww, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
                 }
                 else
@@ -2506,28 +2470,13 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                     sks = 0.0;
                 }
 
-                //double ww = 
-
-                su1 = u;
-                sv1 = v;
-                sw1 = w;
-
-
-                // Делаем перенос в сферической СК 
-                ddd2 = kv(0.0) + kv((x)) + kv((y));
-                if (false)//(ddd2 <= (ddist2 * ddist2))
-                {
-                    spherical_skorost(z, x, y, w, u, v, ur, up, uz);
-                    dekard_skorost(0.0, x, y, ur, up, uz, sw1, su1, sv1);
-                }
-                
 
                 Potok[8] = Potok[8] + sks * S;
-                if (!kor_Sol || metod <= 1 || metod == 3)
+                if (true || !kor_Sol || metod <= 1 || metod == 3)
                 {
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, su1, sv1, sw1, bx, by, bz, ro, Q, p, su1, sv1, -sw1, bx, by, -bz, P, PQ, n1, n2, n3, dist, metod));
                     //tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, p, u, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
-                    tmin = min(tmin, HLLDQ_Alexashov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
+                    tmin = min(tmin, HLLDQ_Alexashov_mini(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
                 }
                 else
                 {
@@ -2560,7 +2509,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
             double U_H4 = sqrt(kv(u - u_H4) + kv(v - v_H4) + kv(w - w_H4) + (4.0 / pi) //
                 * (p / ro + 2.0 * p_H4 / ro_H4));
 
-            double sigma_H4 = kv(1.0 - a_2 * log(U_M_H4));
+            double sigma_H4 = 1.0; // kv(1.0 - a_2 * log(U_M_H4));
 
             double nu_H4 = ro * ro_H4 * U_M_H4 * sigma_H4;
 
@@ -2590,14 +2539,7 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
         bz3 = (bz - *T_do * (Potok[6] + w * Potok[8]) / Volume);
         p3 = ((U8(ro, p, u, v, w, bx, by, bz) - *T_do * (Potok[7] + (skk(u, v, w, bx, by, bz) / cpi4) * Potok[8] - q3 * Volume)//
             / Volume) - 0.5 * ro3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / cpi8) * (ggg - 1.0);
-        //u3 = (ro * u - *T_do * (Potok[1] + (bx) * Potok[8]) / Volume) / ro3;
-        //v3 = (ro * v - *T_do * (Potok[2] + (by) * Potok[8]) / Volume) / ro3;
-        //w3 = (ro * w - *T_do * (Potok[3] + (bz) * Potok[8]) / Volume) / ro3;
-        //bx3 = (bx - *T_do * (Potok[4] + u * Potok[8]) / Volume);
-        //by3 = (by - *T_do * (Potok[5] + v * Potok[8]) / Volume);
-        //bz3 = (bz - *T_do * (Potok[6] + w * Potok[8]) / Volume);
-        //p3 = ((U8(ro, p, u, v, w, bx, by, bz) - *T_do * (Potok[7] + (skk(u, v, w, bx, by, bz)) * Potok[8])//
-        //    / Volume) - 0.5 * ro3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3)) * (ggg - 1.0);
+
         if (p3 <= 0)
         {
             p3 = 0.000001;
@@ -2692,25 +2634,7 @@ __global__ void Cuda_main_HLLD_TVD(int* NN, double* X, double* Y, double* Z, dou
         double x4, y4, z4, dx4, dy4, dz4, ro4, p4, u4, v4, w4, bx4, by4, bz4;
         double x12, y12, z12, dx12, dy12, dz12, ro12, p12, u12, v12, w12, bx12, by12, bz12;
         double x21, y21, z21, dx21, dy21, dz21, ro21, p21, u21, v21, w21, bx21, by21, bz21;
-        double roC = 8.2598; // 1.0;
-        double pC = 3.5252755; //  1.0 / (ggg * M_inf * M_inf);
-        double uC = 0.0; // -1.0;
-        double vC = 0.0;
-        double wC = 0.0;
-        double bxC, byC, bzC;
-        if (mgd == true)
-        {
-            bxC = 0.0; // -spi4 * (1.0 / (M_alf)) * cos(alpha * pi / 180.0);
-            byC = 0.0; // -spi4 * (1.0 / (M_alf)) * sin(alpha * pi / 180.0);
-            bzC = 0.0;
-        }
-        else
-        {
-            bxC = 0.0;
-            byC = 0.0;
-            bzC = 0.0;
-        }
-
+        
         int kk, kk2, l2, r2;
         for (int i = l; i <= r; i++)
         {
@@ -3305,26 +3229,7 @@ __global__ void Cuda_main_HLLDQ_TVD2(int* NN, double* X, double* Y, double* Z, d
         double x21, y21, z21, dx21, dy21, dz21, ro21, p21, u21, v21, w21, bx21, by21, bz21;
         double su1, sv1, sw1, su2, sv2, sw2, sro1, sro2, sp1, sp2;
         double ur, up, uz;
-        double roC = 1.0; // 8.2598; //  1.0;
-        double pC = 1.0 / (ggg); // 1.0 / (ggg * M_inf * M_inf);
-        double uC = M_infty; // -1.0;
-        double vC = 0.0;
-        double wC = 0.0;
-        double QC = 100.0;
-        double bxC, byC, bzC;
-        if (false)
-        {
-            bxC = BX1[index];
-            byC = BY1[index];
-            bzC = BZ1[index];
-        }
-        else
-        {
-            bxC = 0.0;
-            byC = 0.0;
-            bzC = 0.0;
-        }
-
+        
         int kk, kk2, l2, r2;
         for (int i = l; i <= r; i++)
         {
@@ -4024,26 +3929,7 @@ __global__ void Cuda_main_HLLDQ_TVD(int* NN, double* X, double* Y, double* Z, do
         double Q_4, x4, y4, z4, dx4, dy4, dz4, ro4, p4, u4, v4, w4, bx4, by4, bz4;
         double x12, y12, z12, dx12, dy12, dz12, ro12, p12, u12, v12, w12, bx12, by12, bz12, Q12, Q21;
         double x21, y21, z21, dx21, dy21, dz21, ro21, p21, u21, v21, w21, bx21, by21, bz21;
-        double roC = 1.0; // 8.2598; //  1.0;
-        double pC = 1.0 / (ggg); // 1.0 / (ggg * M_inf * M_inf);
-        double uC = 0.0; // -1.0;
-        double vC = 0.0;
-        double wC = 0.0;
-        double QC = 100.0;
-        double bxC, byC, bzC;
-        if (mgd == true)
-        {
-            bxC = BX1[index];
-            byC = BY1[index];
-            bzC = BZ1[index];
-        }
-        else
-        {
-            bxC = 0.0;
-            byC = 0.0;
-            bzC = 0.0;
-        }
-
+        
         int kk, kk2, l2, r2;
         for (int i = l; i <= r; i++)
         {
@@ -4799,7 +4685,7 @@ cudaError_t addWithCuda()
 
     //cout << "(9) All size = " << K.all_Kyb.size() << endl;
 
-    Konstruktor K("binary_ISSI_Instabiliti_1.dat", true);
+    Konstruktor K("binary_ISSI_Instabiliti_3.dat", true);
 
     //Konstruktor K("binary_Golikov_Setka_file_inst_N_16_2024.dat", true);
     //Konstruktor K("Golikov_Setka_file_inst_16_MA_4.txt.txt", false);
@@ -4811,7 +4697,7 @@ cudaError_t addWithCuda()
     //  Golikov_Setka_file_HLLC_2.2Max_12Alf_n52.txt    Golikov_Setka_file_HLLC_2.2Max_12Alf.txt
     //  Golikov_Setka_file_HLLC_1.1Max_12Alf_n54.txt
     //
-    string nam = "ISSI_Instabiliti_2";  // Имя для вывода файлов
+    string nam = "ISSI_Instabiliti_4";  // Имя для вывода файлов
     //string nam = "inst_N_16_MA_4_2025";  // Имя для вывода файлов
     //string nam = "inst_N_31movi_2024";  // Имя для вывода файлов
 
@@ -4940,6 +4826,9 @@ cudaError_t addWithCuda()
     double time_null = -1.0;
     time_t start_time, end_time;
     double seconds;
+
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock; // округление вверх
 
     int deviceCount;
     cudaDeviceProp deviceProp;
@@ -5507,17 +5396,20 @@ cudaError_t addWithCuda()
     istoch = true;
 
 
-    for (int i = 0; i < 150000 * 9; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 500000; i = i + 2)  // Сколько шагов по времени делаем?
     {
-        if (i % 50000 == 0)
+        if (i % 5000 == 0)
         {
             cout << "from HOST HLLDQ  " << i << endl;
         }
         // запускаем add() kernel на GPU, передавая параметры
+
+        // << <(int)(N / 256) + 1, 256 >> >
+        //<< <blocksPerGrid, threadsPerBlock >> >
         Cuda_main_HLLDQ << <(int)(N / 256) + 1, 256 >> > (dev_N, dev_x, dev_y, dev_z, dev_dx, dev_dy, dev_dz,//
             dev_ro1, dev_ro2, dev_Q1, dev_Q2, dev_p1, dev_p2, dev_u1, dev_u2, dev_v1, dev_v2,//
             dev_w1, dev_w2, dev_bx1, dev_by1, dev_bz1, dev_bx2, dev_by2, dev_bz2,//
-            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 0, true);
+            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 1, true);
 
         cudaStatus = cudaDeviceSynchronize();
         if (cudaStatus != cudaSuccess) {
@@ -5535,7 +5427,7 @@ cudaError_t addWithCuda()
         Cuda_main_HLLDQ << <(int)(N / 256) + 1, 256 >> > (dev_N, dev_x, dev_y, dev_z, dev_dx, dev_dy, dev_dz,//
             dev_ro2, dev_ro1, dev_Q2, dev_Q1, dev_p2, dev_p1, dev_u2, dev_u1, dev_v2, dev_v1,//
             dev_w2, dev_w1, dev_bx2, dev_by2, dev_bz2, dev_bx1, dev_by1, dev_bz1,//
-            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 0, true);
+            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 1, true);
 
         cudaStatus = cudaDeviceSynchronize();
         if (cudaStatus != cudaSuccess) {
@@ -5550,7 +5442,7 @@ cudaError_t addWithCuda()
             goto Error;
         }
 
-        if ((i % 30000 == 0))
+        if ((i % 30000000 == 0))
         {
             cout << "HLLC + D " + nam << endl;
             if (true)
