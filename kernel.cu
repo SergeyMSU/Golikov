@@ -31,6 +31,16 @@
 #define byC 0.0
 #define bzC 4.4E-6
 
+#define u_H4 -26.3E5
+#define v_H4 0.0
+#define w_H4 0.0
+#define ro_H4 (3.0 * 1.00357E-25)
+#define p_H4 (3.0 * 1.07955E-13)
+
+#define sig_1 (2.2835E-7)
+#define sig_2 (1.062E-8)
+
+
 using namespace std;
 
 cudaError_t addWithCuda(void);
@@ -2500,7 +2510,7 @@ __global__ void Cuda_main_HLLDQ(int* __restrict__ NN, double* __restrict__ X, do
 
         if (istoch == true)
         {
-            double u_H4 = -26.3E5, v_H4 = 0.0, w_H4 = 0.0, ro_H4 = 3.0 * 1.00357E-25, p_H4 = 3.0 * 1.07955E-13;
+            //double u_H4 = -26.3E5, v_H4 = 0.0, w_H4 = 0.0, ro_H4 = 3.0 * 1.00357E-25, p_H4 = 3.0 * 1.07955E-13;
 
 
             double U_M_H4 = sqrt(kv(u - u_H4) + kv(v - v_H4) + kv(w - w_H4) + (64.0 / (9.0 * pi)) //
@@ -2509,9 +2519,9 @@ __global__ void Cuda_main_HLLDQ(int* __restrict__ NN, double* __restrict__ X, do
             double U_H4 = sqrt(kv(u - u_H4) + kv(v - v_H4) + kv(w - w_H4) + (4.0 / pi) //
                 * (p / ro + 2.0 * p_H4 / ro_H4));
 
-            double sigma_H4 = 1.0; // kv(1.0 - a_2 * log(U_M_H4));
+            //double sigma_H4 = kv(sig_1 - sig_2 * log(U_M_H4));
 
-            double nu_H4 = ro * ro_H4 * U_M_H4 * sigma_H4;
+            double nu_H4 = ro * ro_H4 * U_M_H4 * kv(sig_1 - sig_2 * log(U_M_H4));
 
             q2_1 = (nu_H4 * (u_H4 - u));
             q2_2 = (nu_H4 * (v_H4 - v));
@@ -2522,9 +2532,9 @@ __global__ void Cuda_main_HLLDQ(int* __restrict__ NN, double* __restrict__ X, do
                 (U_H4 / U_M_H4) * (2.0 * p_H4 / ro_H4 - p / ro)));
         }
 
-        double ro3, p3, u3, v3, w3, bx3, by3, bz3, Q33;
+        double ro3, p3, u3, v3, w3, bx3, by3, bz3;
 
-        Q33 = Q - *T_do * Potok[9] / Volume;
+        Q2[index] = Q - *T_do * Potok[9] / Volume;
         ro3 = ro - *T_do * Potok[0] / Volume;
         if (ro3 <= 0.0)
         {
@@ -2545,7 +2555,7 @@ __global__ void Cuda_main_HLLDQ(int* __restrict__ NN, double* __restrict__ X, do
             p3 = 0.000001;
         }
 
-        Q2[index] = Q33;
+        //Q2[index] = Q33;
         RO2[index] = ro3;
         P2[index] = p3;
         U2[index] = u3;
@@ -4685,7 +4695,7 @@ cudaError_t addWithCuda()
 
     //cout << "(9) All size = " << K.all_Kyb.size() << endl;
 
-    Konstruktor K("binary_ISSI_Instabiliti_3.dat", true);
+    Konstruktor K("binary_ISSI_Instabiliti_4.dat", true);
 
     //Konstruktor K("binary_Golikov_Setka_file_inst_N_16_2024.dat", true);
     //Konstruktor K("Golikov_Setka_file_inst_16_MA_4.txt.txt", false);
@@ -5396,7 +5406,7 @@ cudaError_t addWithCuda()
     istoch = true;
 
 
-    for (int i = 0; i < 500000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 100000; i = i + 2)  // Сколько шагов по времени делаем?
     {
         if (i % 5000 == 0)
         {
