@@ -4707,7 +4707,7 @@ cudaError_t addWithCuda()
     //  Golikov_Setka_file_HLLC_2.2Max_12Alf_n52.txt    Golikov_Setka_file_HLLC_2.2Max_12Alf.txt
     //  Golikov_Setka_file_HLLC_1.1Max_12Alf_n54.txt
     //
-    string nam = "ISSI_Instabiliti_4";  // Имя для вывода файлов
+    string nam = "ISSI_Instabiliti_5";  // Имя для вывода файлов
     //string nam = "inst_N_16_MA_4_2025";  // Имя для вывода файлов
     //string nam = "inst_N_31movi_2024";  // Имя для вывода файлов
 
@@ -4796,6 +4796,51 @@ cudaError_t addWithCuda()
 
 
     cout << "Zapolnil" << endl;
+
+
+    // Вычисляем степень локальности ячеек в массиве
+    if (true)
+    {
+        int i_cell = 0;
+        int i_local = 0;
+        int i_nelocal = 0;
+        double all_percent = 0.0;
+        int N_percent = 0.0;
+        while (i_cell + 256 < N)
+        {
+            i_local = 0;
+            i_nelocal = 0;
+            for (int i = 0; i < 256; i++)
+            {
+                auto cell = K.all_Kyb[i_cell + i];
+                for (Kyb*& k : cell->sosed)
+                {
+                    if (k->number >= 0)
+                    {
+                        if (k->number >= i_cell && k->number < i_cell + 256)
+                        {
+                            i_local++;
+                        }
+                        else
+                        {
+                            i_nelocal++;
+                        }
+                    }
+                }
+            }
+
+            double percent = 1.0 * i_local / (1.0 * i_local + 1.0 * i_nelocal);
+            all_percent += percent;
+            N_percent++;
+
+            i_cell = i_cell + 256;
+        }
+
+        cout << "Prozent lokalnosti = " << (all_percent / N_percent) * 100.0 << endl;
+    }
+
+
+
     int* host_sosed;
     int* host_sosed2;
     int* dev_sosed;
@@ -5406,7 +5451,7 @@ cudaError_t addWithCuda()
     istoch = true;
 
 
-    for (int i = 0; i < 100000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 1; i = i + 2)  // Сколько шагов по времени делаем?
     {
         if (i % 5000 == 0)
         {
