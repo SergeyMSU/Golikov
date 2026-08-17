@@ -1468,7 +1468,7 @@ __global__ void funk_time(double* T, double* T_do, double* TT, int* i)
     *TT = *TT + *T_do;
     *T = 10000000;
     *i = *i + 1;
-    if (*i % 1000 == 0)
+    if (*i % 20000 == 0)
     {
         printf("i = %d,  TT = %lf years,  dT = %lf hours \n", *i, *TT/0.00791429, *T_do / 9.03458E-7);
     }
@@ -2544,7 +2544,8 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
                 }
                 else
                 {
-                    tmin = min(tmin, HLLDQ_Korolkov(ro, Q, p, su1, sv1, sw1, bx, by, bz, ro, Q, p, su1, sv1, -sw1, bx, by, -bz, P, PQ, n1, n2, n3, dist, metod));
+                    tmin = min(tmin, HLLDQ_Korolkov(ro, Q, p, u, v, w, bx, by, bz, roC, QC, pC, uC, vC, wC, bxC, byC, bzC, P, PQ, n1, n2, n3, dist, metod));
+                    //tmin = min(tmin, HLLDQ_Korolkov(ro, Q, p, su1, sv1, sw1, bx, by, bz, ro, Q, p, su1, sv1, -sw1, bx, by, -bz, P, PQ, n1, n2, n3, dist, metod));
                     //tmin = min(tmin, HLLDQ_Korolkov(ro, Q, p, u, v, w, bx, by, bz, ro, Q, pC, u, v, w, bx, by, bz, P, PQ, n1, n2, n3, dist, metod));
                 }
                 for (int k = 0; k < 8; k++)  // Суммируем все потоки в ячейке
@@ -2561,9 +2562,9 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
 
         double q2_1 = 0.0, q2_2 = 0.0, q2_3 = 0.0, q3 = 0.0;
 
-        if (false)//(istoch == true)
+        if (true)//(istoch == true)
         {
-            double u_H4 = -M_inf, v_H4 = 0.0, w_H4 = 0.0, ro_H4 = 1.0, p_H4 = 1.0 / (2.0 * ggg);
+            double u_H4 = M_infty, v_H4 = 0.0, w_H4 = 0.0, ro_H4 = 1.0, p_H4 = 1.0 / (2.0 * ggg);
 
             double U_M_H4 = sqrt(kv(u - u_H4) + kv(v - v_H4) + kv(w - w_H4) + (64.0 / (9.0 * pi)) //
                 * (p / ro + 2.0 * p_H4 / ro_H4));
@@ -2575,12 +2576,12 @@ __global__ void Cuda_main_HLLDQ(int* NN, double* X, double* Y, double* Z, double
 
             double nu_H4 = ro * ro_H4 * U_M_H4 * sigma_H4;
 
-            q2_1 = (n_p_LISM_ / Kn_) * (nu_H4 * (u_H4 - u));
-            q2_2 = (n_p_LISM_ / Kn_) * (nu_H4 * (v_H4 - v));
-            q2_3 = (n_p_LISM_ / Kn_) * (nu_H4 * (w_H4 - w));
+            q2_1 = (3.0 / Kn_) * (nu_H4 * (u_H4 - u));
+            q2_2 = (3.0 / Kn_) * (nu_H4 * (v_H4 - v));
+            q2_3 = (3.0 / Kn_) * (nu_H4 * (w_H4 - w));
 
 
-            q3 = (n_p_LISM_ / Kn_) * (nu_H4 * ((kv(u_H4) + kv(v_H4) + kv(w_H4) - kv(u) - kv(v) - kv(w)) / 2.0 + //
+            q3 = (3.0 / Kn_) * (nu_H4 * ((kv(u_H4) + kv(v_H4) + kv(w_H4) - kv(u) - kv(v) - kv(w)) / 2.0 + //
                 (U_H4 / U_M_H4) * (2.0 * p_H4 / ro_H4 - p / ro)));
         }
 
@@ -4813,13 +4814,16 @@ cudaError_t addWithCuda()
     //Konstruktor K(100, 100, 160,   -3.06553, 3.06553, -3.06553, 3.06553,   0.0, 4.9048102);   // !!!!!!!!!!!!!!!!!!!!!!!
     //Konstruktor K("binary_Moscow_Boston_3-HLLD_TVD_2025.dat", true);
 
-    Konstruktor K("binary_Maat-Laks-1.dat", true);
+    Konstruktor K("binary_Maat-HLLC-atoms-1.dat", true);
     //Konstruktor K("Golikov_Setka_file_inst_16_MA_4.txt.txt", false);
     //Konstruktor K("binary_Golikov_Setka_file_moscow_31_2024_vremenniy.dat", true);
 
-    // Maat-Laks-1   
-    //
-    string nam = "Maat-HLL-1";  // Имя для вывода файлов
+    // "Maat-Laks-1"
+    // "Maat-HLL-1"
+    // "Maat-HLLC-atoms-1"
+
+
+    string nam = "Maat-HLLC-atoms-1";  // Имя для вывода файлов
     //string nam = "inst_N_16_MA_4_2025";  // Имя для вывода файлов
     //string nam = "inst_N_31movi_2024";  // Имя для вывода файлов
 
@@ -4959,7 +4963,7 @@ cudaError_t addWithCuda()
 
 
 
-    //K.filling_mini();
+    K.filling_mini();
 
 
     cout << "Zapolnil" << endl;
@@ -5566,9 +5570,9 @@ cudaError_t addWithCuda()
     time(&start_time);
     //nam = "1.97";
     MMM = 0.0;
-    for (int i = 0; i < 20000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 200000 * 5; i = i + 2)  // Сколько шагов по времени делаем?
     {
-        if (i % 1000 == 0)
+        if (i % 50000 == 0)
         {
             cout << "from HOST HLLDQ " << i << endl;
         }
@@ -5576,7 +5580,7 @@ cudaError_t addWithCuda()
         Cuda_main_HLLDQ << <(int)(N / 256) + 1, 256 >> > (dev_N, dev_x, dev_y, dev_z, dev_dx, dev_dy, dev_dz,//
             dev_ro1, dev_ro2, dev_Q1, dev_Q2, dev_p1, dev_p2, dev_u1, dev_u2, dev_v1, dev_v2,//
             dev_w1, dev_w2, dev_bx1, dev_by1, dev_bz1, dev_bx2, dev_by2, dev_bz2,//
-            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 1);
+            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 2);
 
         cudaStatus = cudaDeviceSynchronize();
         if (cudaStatus != cudaSuccess) {
@@ -5594,7 +5598,7 @@ cudaError_t addWithCuda()
         Cuda_main_HLLDQ << <(int)(N / 256) + 1, 256 >> > (dev_N, dev_x, dev_y, dev_z, dev_dx, dev_dy, dev_dz,//
             dev_ro2, dev_ro1, dev_Q2, dev_Q1, dev_p2, dev_p1, dev_u2, dev_u1, dev_v2, dev_v1,//
             dev_w2, dev_w1, dev_bx2, dev_by2, dev_bz2, dev_bx1, dev_by1, dev_bz1,//
-            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 1);
+            dev_sosed, dev_l, dev_r, dev_T, dev_T_do, i, MMM, true, true, 2);
 
         cudaStatus = cudaDeviceSynchronize();
         if (cudaStatus != cudaSuccess) {
