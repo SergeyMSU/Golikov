@@ -1141,9 +1141,9 @@ void Konstruktor::filling(void)
 	//double B_E = sqrt(kk_)/(M_alf * rr_0);
 
 	double V_E = phi_0;
-	double ro_E = 1.0 / (phi_0 * phi_0 * rr_0 * rr_0); // MM / (4.0 * pi * V_E * rr_0 * rr_0);
+	double ro_E = 1.0 / (phi_0 * phi_0 * ae1 * ae1); // MM / (4.0 * pi * V_E * rr_0 * rr_0);
 	double P_E = ro_E * V_E * V_E / (ggg * M_0 * M_0);   // Мах другой в давлении
-	double B_E = sqrt(4.0 * pi) / (M_alf * rr_0);
+	double B_E = sqrt(4.0 * pi) / (M_alf * ae1);
 
 	for (auto& i : this->all_Kyb)
 	{
@@ -1165,45 +1165,32 @@ void Konstruktor::filling(void)
 		}
 		else if (dist <= ddist * 1.3) //ddist * 1.0001) //(dist3 < 1.0001) // dist <= ddist * 1.0001)
 		{
-			i->ro = ro_E / pow(dist / rr_0, 2.0);
-			i->p = P_E * pow(rr_0 / dist, 2.0 * ggg);
+			i->ro = ro_E * pow(ae1/dist, 2.0);
+			i->p = P_E * pow(ae1 / dist, 2.0 * ggg);
 			i->u = V_E * i->x / dist;
 			i->v = V_E * i->y / dist;
 			i->w = V_E * i->z / dist;
-			double BE = B_E / (dist / rr_0);
+			double BE = B_E / (dist / ae1);
 			double the = acos(i->z / dist);
 			double AA, BB, CC;
-			double BR = -B_E * kv((rr_0 / dist));    // Br
+			double BR = -B_E * kv((ae1 / dist)); 
 			this->dekard_skorost(i->x, i->y, i->z, BR, BE * sin(the), 0.0, AA, BB, CC);
 			i->Bx = AA;
 			i->By = BB;
 			i->Bz = CC;
-			/*i->Bx = 0.0;
-			i->By = 0.0;
-			i->Bz = 0.0;*/
 			i->Q = i->ro;
 		}
 		else
 		{
 			i->ro = 1.0;
 			i->p = 1.0/(ggg);
-			i->u = M_infty; //-1.0;
+			i->u = M_infty;
 			i->v = 0.0;
 			i->w = 0.0;
 			i->Bx = 0.0;
 			i->By = 0.0;
-			i->Bz = 0.0;
+			i->Bz = B_inf;
 			i->Q = 100.0;
-
-			// Перенормировка параметров
-			/*if (i->Q / i->ro < 50.0)
-			{
-				i->ro = i->ro / kv(phi_0);
-				i->Q = i->Q / kv(phi_0);
-				i->u = i->u * phi_0;
-				i->v = i->v * phi_0;
-				i->w = i->w * phi_0;
-			}*/
 		}
 		
 		
